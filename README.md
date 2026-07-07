@@ -62,17 +62,17 @@ claude        # or: opencode
 <table>
 <tr><th align="left">Item</th><th align="left">Type</th><th align="left">Description</th></tr>
 <tr>
-<td><a href="claude/agents/commit-writer.md">commit-writer</a><br><sub>Claude · <a href="opencode/agents/commit-writer.md">opencode</a></sub></td>
+<td nowrap><a href="claude/agents/commit-writer.md">commit‑writer</a><br><sub>Claude&nbsp;·&nbsp;<a href="opencode/agents/commit-writer.md">opencode</a></sub></td>
 <td>Agent</td>
 <td>Reviews the staged diff and writes a clean Conventional Commits message. Limited to <code>Read</code> + <code>Bash</code> (no write/edit); never commits unless asked.</td>
 </tr>
 <tr>
-<td><a href="claude/skills/release-notes/SKILL.md">release-notes</a><br><sub>Claude · <a href="opencode/skills/release-notes/SKILL.md">opencode</a></sub></td>
+<td nowrap><a href="claude/skills/release-notes/SKILL.md">release‑notes</a><br><sub>Claude&nbsp;·&nbsp;<a href="opencode/skills/release-notes/SKILL.md">opencode</a></sub></td>
 <td>Skill</td>
 <td>Buckets <code>git log</code> between two refs into grouped, human-readable release notes.</td>
 </tr>
 <tr>
-<td><a href="claude/skills/azure-diagram/">azure-diagram</a><br><sub>Claude · <a href="opencode/skills/azure-diagram/">opencode</a></sub></td>
+<td nowrap><a href="claude/skills/azure-diagram/">azure‑diagram</a><br><sub>Claude&nbsp;·&nbsp;<a href="opencode/skills/azure-diagram/">opencode</a></sub></td>
 <td>Skill</td>
 <td>Generates editable, dark-theme Azure architecture diagrams as <code>.excalidraw</code> files — official Azure icons as nodes, resource-group containers, and auto-routed connectors that dodge other icons and stay snapped to nodes. Describe the architecture in one line. Bundles a pure-Python generator + the full official Azure icon set (647 icons). <a href="claude/skills/azure-diagram/">See example →</a></td>
 </tr>
