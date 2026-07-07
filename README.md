@@ -4,6 +4,8 @@ A collection of reusable **agents** and **skills** for [Claude Code](https://doc
 
 Each item is self-contained — browse the tables below, then copy the file (or folder) into your own config. Install locations are noted per platform.
 
+> **New here?** Read [CONCEPTS.md](CONCEPTS.md) for a deep dive on what agents and skills are, how they work, and best practices for building them.
+
 ## Layout
 
 ```
