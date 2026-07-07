@@ -6,7 +6,33 @@ Every item is self-contained. Browse the catalog, then either **[run them straig
 
 > **New here?** Read **[CONCEPTS.md](CONCEPTS.md)** for a deep dive on what agents and skills are, how they work, and best practices for building them.
 
+## Quick start
+
+Clone the repo and run the linker once — this makes every item discoverable by your CLI.
+
+```bash
+git clone <repo-url>
+cd ai-agents
+./scripts/link.sh          # in this repo only
+# – or –
+./scripts/link.sh --global # everywhere (links into ~/.claude & ~/.config/opencode)
+```
+
+Then launch your CLI (from inside the repo if you used the plain command) and invoke an item:
+
+```bash
+claude        # or: opencode
+```
+
+| | **commit-writer** (agent) | **release-notes** (skill) |
+|---|---|---|
+| **Claude Code** | Stage a change, then ask: *"use the commit-writer agent"* | Type `/release-notes`, or ask *"draft release notes since v1.0"* |
+| **opencode** | Mention it: `@commit-writer` | Ask *"summarise the commits since the last tag"* |
+
+`./scripts/link.sh` (no flag) only works when the repo is your working directory; `--global` makes the items available in every project. More detail in [Run the items from this repo](#run-the-items-from-this-repo) and [Install into your own config](#install-into-your-own-config).
+
 ## Contents
+- [Quick start](#quick-start) — clone → link → use
 - [Catalog](#catalog) — every agent & skill, with descriptions
 - [Run the items from this repo](#run-the-items-from-this-repo) — try them without installing
 - [Install into your own config](#install-into-your-own-config) — use them everywhere
