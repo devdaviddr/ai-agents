@@ -40,6 +40,10 @@ The script resolves its own icons and catalog relative to itself, so once `$AZ` 
    ```
    **Always pass `--professional`** unless the user explicitly wants the sketchy look — it forces `roughness: 0` (clean lines) and `fontFamily: 2` (Helvetica), which is what makes it read as an Azure Architecture Center diagram. Default the output to `~/Desktop/<Name>-Architecture.excalidraw` unless the user gave a path; confirm before overwriting.
 
+   **Two visual styles** — pick based on what the user wants:
+   - *Pastel-box (default):* coloured category boxes on a white canvas (see the catalog's node recipe).
+   - *Dark / icon-centric:* add **`--dark`** for a near-black canvas where the **icon is the node** (no box), white captions, and white right-angled (elbow) connectors — the modern Microsoft-docs look. Follow the **"Dark / icon-centric theme"** recipe in the catalog. `--dark` and `--professional` combine.
+
 6. **Open it.** opencode does not render Excalidraw inline, so tell the user to open the saved file at [excalidraw.com](https://excalidraw.com) (File → Open) or with the VS Code Excalidraw extension. (If you have configured an Excalidraw MCP you may also push the elements to it, but inline rendering isn't supported in the opencode UI.)
 
 ## Key engine facts

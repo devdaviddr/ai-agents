@@ -2,10 +2,11 @@
 
 The visual language for ASG Azure architecture diagrams. Apply categories consistently:
 every service of the same category gets the same stroke + fill, so a reader decodes the
-diagram by colour. Print the live version any time with:
+diagram by colour. Print the live version any time with the bundled script (in this skill's
+`scripts/` directory):
 
 ```bash
-python3 ~/.claude/skills/azure-excalidraw/scripts/azdiagram.py catalog
+python3 "<skill-dir>/scripts/azdiagram.py" catalog   # Claude: <skill-dir> = ${CLAUDE_SKILL_DIR}
 ```
 
 ## Category palette
@@ -83,13 +84,53 @@ For a professional, Azure-Architecture-Center look, save with `--professional` (
 
 `assets/templates/cae-bff-professional.json` is a worked example of all of the above.
 
+## Dark / icon-centric theme (the Azure Architecture Center look)
+
+Save with **`--dark`** for the modern Microsoft-docs aesthetic: a **near-black canvas**, the
+**icon itself as the node** (no coloured box), **white captions**, and **white right-angled
+(elbow) connectors**. `--dark` sets the dark background and turns near-black text/arrows white;
+you supply the icon-centric layout. Use this when the user wants a clean, dark, icon-forward
+diagram rather than the pastel-box house style.
+
+**Icon node — a big icon with a white caption below it, no rectangle:**
+
+```json
+{"type":"image","id":"api_ic","iconId":"api-management","x":300,"y":900,"width":84,"height":84}
+{"type":"text","id":"api_lbl","x":250,"y":996,"width":184,"height":40,"text":"Azure API\nManagement","fontSize":16,"textAlign":"center"}
+```
+
+- Icons **72–90px**. Centre the caption under the icon (`text.x = icon.x + icon.width/2 − text.width/2`), ~10px below it.
+- **Group** each icon with its caption so they move together: add `"group":"n_api"` to both.
+- Don't set text colour — `--dark` whitens it. (Or set `#ffffff` explicitly.)
+
+**Elbow connectors — white, right-angled, bound to nodes:**
+
+```json
+{"type":"arrow","id":"a1","x":390,"y":940,"width":120,"height":0,"points":[[0,0],[120,0]],"elbowed":true,"endArrowhead":"arrow","startBinding":{"elementId":"web_ic","fixedPoint":[1,0.5]},"endBinding":{"elementId":"api_ic","fixedPoint":[0,0.5]}}
+```
+
+- `"elbowed":true` gives the orthogonal right-angle routing seen in Azure reference diagrams.
+- Bind both ends to the **icon** elements so the elbows re-route cleanly when moved.
+- Omit `strokeColor` (–dark makes it white) or set `#ffffff`.
+
+**Panel container — the subtle grouping box (e.g. "CODEBASE STORAGE"):** dark fill, thin
+bright-blue stroke, small blue label chip top-left. Draw it **first** so icons sit on top.
+
+```json
+{"type":"rectangle","id":"panel","x":1120,"y":150,"width":300,"height":760,"roundness":{"type":3},"backgroundColor":"#161b22","fillStyle":"solid","strokeColor":"#4c9aff","strokeWidth":2}
+{"type":"text","id":"panel_lbl","x":1150,"y":170,"width":160,"height":40,"text":"CODEBASE\nSTORAGE","fontSize":14,"strokeColor":"#4c9aff"}
+```
+
+Title: white, fontSize 28–30, centred at top. Give rows ~120px vertical breathing room so
+captions don't collide. Frame the whole drawing within ~2000×1200.
+
 ## Azure service icons
 
 Official Microsoft Azure architecture icons are bundled in `assets/icons/` and embedded
 into the saved `.excalidraw` file. List them:
 
 ```bash
-python3 ~/.claude/skills/azure-excalidraw/scripts/azdiagram.py icons
+python3 "<skill-dir>/scripts/azdiagram.py" icons
 ```
 
 Add an icon by dropping an `image` element with an `iconId` (the icon filename without

@@ -165,6 +165,31 @@ def professionalize(elements):
             el["label"]["fontFamily"] = 2
 
 
+DARK_STROKES = {
+    "", "#1e1e1e", "#1a1a1a", "#000000", "#000", "#201f1e", "#605e5c",
+    "#343a40", "#495057", "#5a6473", "#212529",
+}
+DARK_BG = "#1a1a1a"
+LIGHT_INK = "#ffffff"
+
+
+def darkify(elements):
+    """Recolor a diagram for a dark canvas (the icon-centric Azure look). Near-black text
+    and arrow/line strokes become white so they read on the dark background; bright or grey
+    colours (category strokes, #b0b0b0 auth arrows) are left as-is. Pairs with the icon-as-node
+    recipe in the catalog (big icon + white caption, no filled box)."""
+    for el in elements:
+        if not isinstance(el, dict):
+            continue
+        t = el.get("type")
+        sc = str(el.get("strokeColor", "")).lower()
+        if t in ("text", "arrow", "line") and sc in DARK_STROKES:
+            el["strokeColor"] = LIGHT_INK
+        lbl = el.get("label")
+        if isinstance(lbl, dict) and str(lbl.get("strokeColor", "")).lower() in DARK_STROKES:
+            lbl["strokeColor"] = LIGHT_INK
+
+
 def _gid(key):
     """Stable, deterministic Excalidraw groupId from a key — no RNG, so re-saves are stable."""
     return "grp" + hashlib.md5(key.encode("utf-8")).hexdigest()[:12]
@@ -240,20 +265,25 @@ def apply_groups(elements, auto=True):
     return len(groups)
 
 
-def save(elements, out_path, professional=False, group=True):
+def save(elements, out_path, professional=False, group=True, dark=False):
     drawable = [el for el in elements if isinstance(el, dict) and el.get("type") not in PSEUDO]
     if professional:
         professionalize(drawable)
+    if dark:
+        darkify(drawable)
     files = {}
     missing = embed_icons(drawable, files)
     drawable = expand_labels(drawable)
     ngroups = apply_groups(drawable, auto=group)
+    app_state = {"gridSize": None, "viewBackgroundColor": DARK_BG if dark else "#ffffff"}
+    if dark:
+        app_state["theme"] = "dark"
     doc = {
         "type": "excalidraw",
         "version": 2,
         "source": "https://excalidraw.com",
         "elements": drawable,
-        "appState": {"gridSize": None, "viewBackgroundColor": "#ffffff"},
+        "appState": app_state,
         "files": files,
     }
     with open(out_path, "w", encoding="utf-8") as f:
@@ -299,7 +329,29 @@ Node recipe (a service box):
 
 Conventions: fontSize >=16 body / >=20 titles; node min 120x60, prefer 260x90;
 20-30px gaps; dashed grey arrows (#b0b0b0) for auth/OIDC, solid black for data flow,
-category-stroke arrows to colour-code a flow. No emoji (won't render)."""
+category-stroke arrows to colour-code a flow. No emoji (won't render).
+
+DARK / ICON-CENTRIC THEME  (save with --dark)  -- the Azure Architecture Center look:
+  Instead of a coloured box per service, the ICON *is* the node. Dark canvas, white text,
+  white elbow (right-angled) connectors. This is what --dark + this recipe produce.
+
+  1. Icon node = a big icon image + a white caption below it, NO rectangle:
+     {"type":"image","id":"api_ic","iconId":"api-management","x":..,"y":..,"width":84,"height":84}
+     {"type":"text","id":"api_lbl","x":<icon.x+42-w/2>,"y":<icon.y+92>,"text":"Azure API\\nManagement",
+      "fontSize":16,"textAlign":"center"}     # --dark turns dark text white for you
+     Group each icon with its caption:  add "group":"n_api" to both.
+  2. Elbow connectors: white, right-angled. Add "elbowed":true and bind both ends:
+     {"type":"arrow","id":"a1","x":..,"y":..,"width":..,"height":..,"points":[[0,0],[dx,0],[dx,dy]],
+      "elbowed":true,"strokeColor":"#ffffff","endArrowhead":"arrow",
+      "startBinding":{"elementId":"web","fixedPoint":[1,0.5]},"endBinding":{"elementId":"api","fixedPoint":[0,0.5]}}
+     (--dark also recolours any near-black arrow to white, so you can omit strokeColor.)
+  3. Panel container (the subtle "CODEBASE STORAGE" box): dark fill, thin bright-blue stroke,
+     small label chip top-left. Draw it FIRST so icons sit on top:
+     {"type":"rectangle","id":"panel","x":..,"y":..,"width":..,"height":..,"roundness":{"type":3},
+      "backgroundColor":"#161b22","fillStyle":"solid","strokeColor":"#4c9aff","strokeWidth":2}
+     {"type":"text","id":"panel_lbl","x":..,"y":..,"text":"CODEBASE\\nSTORAGE","fontSize":14,"strokeColor":"#4c9aff"}
+  4. Title: white, fontSize 28-30, centred at top. Icons 72-90px; ~120px vertical gap between
+     an icon and the next row so captions don't collide. Keep everything inside ~2000x1200."""
 
 
 def main():
@@ -312,6 +364,8 @@ def main():
         if name == "save":
             sp.add_argument("--professional", action="store_true",
                             help="clean look: roughness 0 on shapes, Helvetica (fontFamily 2) on text")
+            sp.add_argument("--dark", action="store_true",
+                            help="dark canvas: near-black background + white text/arrows (pairs with the icon-centric recipe)")
             sp.add_argument("--no-auto-group", dest="auto_group", action="store_false",
                             help="disable auto-grouping a node's box+icon+label (explicit `group` still applies)")
     sub.add_parser("catalog")
@@ -341,7 +395,7 @@ def main():
         print(f"OK — {len([e for e in elements if e.get('type') not in PSEUDO])} drawable elements, no errors")
     else:
         save(elements, args.out, professional=getattr(args, "professional", False),
-             group=getattr(args, "auto_group", True))
+             group=getattr(args, "auto_group", True), dark=getattr(args, "dark", False))
 
 
 if __name__ == "__main__":
