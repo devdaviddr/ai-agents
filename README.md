@@ -72,9 +72,9 @@ claude        # or: opencode
 <td>Buckets <code>git log</code> between two refs into grouped, human-readable release notes.</td>
 </tr>
 <tr>
-<td><a href="claude/skills/azure-diagram/SKILL.md">azure-diagram</a><br><sub>Claude · <a href="opencode/skills/azure-diagram/SKILL.md">opencode</a></sub></td>
+<td><a href="claude/skills/azure-diagram/">azure-diagram</a><br><sub>Claude · <a href="opencode/skills/azure-diagram/">opencode</a></sub></td>
 <td>Skill</td>
-<td>Generates Azure cloud architecture diagrams as <code>.excalidraw</code> files with a consistent design system (category colours, zone containers, official Azure icons). Bundles a pure-Python generator + the full official Azure icon set (~650 icons).</td>
+<td>Generates editable, dark-theme Azure architecture diagrams as <code>.excalidraw</code> files — official Azure icons as nodes, resource-group containers, and auto-routed connectors that dodge other icons and stay snapped to nodes. Describe the architecture in one line. Bundles a pure-Python generator + the full official Azure icon set (647 icons). <a href="claude/skills/azure-diagram/">See example →</a></td>
 </tr>
 </table>
 

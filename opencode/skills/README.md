@@ -64,6 +64,6 @@ This skill is byte-for-byte compatible with the [Claude version](../../claude/sk
 | Skill | Description |
 |-------|-------------|
 | [release-notes](release-notes/SKILL.md) | Buckets `git log` between two refs into grouped, human-readable release notes. |
-| [azure-diagram](azure-diagram/SKILL.md) | Generates Azure architecture diagrams as `.excalidraw` files (bundled Python generator + the full official Azure icon set (~650) + design-system catalog). File-only; open at excalidraw.com. |
+| [azure-diagram](azure-diagram/) | Generates **editable, dark-theme** Azure architecture diagrams as `.excalidraw` files — official Azure icons as nodes, resource-group containers, connectors that auto-route around icons and stay snapped. Bundled Python generator + the full official Azure icon set (647) + design-system catalog. File-only; open at excalidraw.com. [Example →](azure-diagram/README.md) |
 
 To add one, follow [CONTRIBUTING.md](../../CONTRIBUTING.md) and add a row here **and** in the [main README](../../README.md).
