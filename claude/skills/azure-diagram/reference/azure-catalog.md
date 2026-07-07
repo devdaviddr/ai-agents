@@ -104,7 +104,7 @@ python3 "<skill-dir>/scripts/azdiagram.py" scene "<out>.excalidraw" --from scene
 
 Scene schema — place each node on a `col`/`row` grid (or explicit `x`/`y`); the builder
 positions icons, centres captions under them, auto-fits panels around their members, and
-routes bound orthogonal arrows that **avoid crossing other icons** (it tries several right-angle
+routes bound orthogonal arrows that **avoid crossing other icons or their captions** (it tries several right-angle
 paths per edge and picks a clean one):
 
 ```json
