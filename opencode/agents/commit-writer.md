@@ -1,7 +1,8 @@
 ---
 description: Use when the user wants a commit message written for their staged changes. Reviews the staged diff and produces a clean Conventional Commits message. Does not commit unless asked.
 mode: subagent
-model: anthropic/claude-sonnet-5
+# model omitted → inherits the session model. Pin one if you like, e.g.
+# model: anthropic/claude-sonnet-4-5
 tools:
   write: false
   edit: false

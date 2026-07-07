@@ -43,7 +43,7 @@ Markdown with frontmatter. `mode` is `subagent`, `primary`, or `all`. `tools` is
 ---
 description: When this agent should be invoked.
 mode: subagent
-model: anthropic/claude-sonnet-5
+model: anthropic/claude-sonnet-4-5
 tools:
   write: false
   edit: false
@@ -53,7 +53,7 @@ System prompt for the agent...
 ```
 
 ### opencode skill — `opencode/skills/<name>/SKILL.md`
-Same [Agent Skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills) `SKILL.md` format as Claude Code.
+Same [Agent Skills](https://agentskills.io) `SKILL.md` format as Claude Code.
 
 ## Checklist
 - [ ] File in the correct `platform/type/` folder

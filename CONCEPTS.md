@@ -101,10 +101,10 @@ Both platforms share the same two concepts, and the `SKILL.md` format follows th
 | Agent dir | `.claude/agents/` | `.opencode/agents/` (singular `agent/` also works) |
 | Skill dir | `.claude/skills/` | `.opencode/skills/` (singular `skill/` also works) |
 | Global scope | `~/.claude/…` | `~/.config/opencode/…` |
-| Agent `name` field | optional (unique id; defaults matter) | none — the **filename** is the name |
+| Agent `name` field | required (unique, lowercase + hyphens) | none — the **filename** is the name |
 | Agent `tools` | comma-separated allowlist string | **map of tool → boolean** |
 | Agent modes | subagents only | `primary` / `subagent` / `all` (`primary` agents are Tab-switchable) |
-| Agent model field | `sonnet` / `opus` / `haiku` / `fable` / id / `inherit` (default `inherit`) | `provider/model`, e.g. `anthropic/claude-sonnet-5` |
+| Agent model field | `sonnet` / `opus` / `haiku` / `fable` / id / `inherit` (default `inherit`) | `provider/model`, e.g. `anthropic/claude-sonnet-4-5` |
 | Skill invocation | `/name` **or** model-triggered | agent-triggered via the `skill` tool (no `/slash`) |
 
 > opencode's canonical directories are **plural** (`agents/`, `skills/`); the singular forms are kept only for backwards compatibility, so this collection uses the plural everywhere.

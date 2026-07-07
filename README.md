@@ -9,7 +9,7 @@ Browse the catalog · run them straight from the repo · install them everywhere
 <br>
 
 [![Platforms](https://img.shields.io/badge/platforms-Claude%20Code%20%7C%20opencode-4c6ef5?style=flat-square)](#catalog)
-[![Catalog](https://img.shields.io/badge/catalog-2%20agents%20%C2%B7%202%20skills-2f9e44?style=flat-square)](#catalog)
+[![Catalog](https://img.shields.io/badge/catalog-1%20agent%20%C2%B7%201%20skill-2f9e44?style=flat-square)](#catalog)
 [![Docs](https://img.shields.io/badge/docs-CONCEPTS-7048e8?style=flat-square)](CONCEPTS.md)
 [![License](https://img.shields.io/badge/license-MIT-868e96?style=flat-square)](LICENSE)
 
@@ -64,7 +64,7 @@ claude        # or: opencode
 <tr>
 <td><a href="claude/agents/commit-writer.md">commit-writer</a><br><sub>Claude · <a href="opencode/agents/commit-writer.md">opencode</a></sub></td>
 <td>Agent</td>
-<td>Reviews the staged diff and writes a clean Conventional Commits message. Read-only tools; never commits unless asked.</td>
+<td>Reviews the staged diff and writes a clean Conventional Commits message. Limited to <code>Read</code> + <code>Bash</code> (no write/edit); never commits unless asked.</td>
 </tr>
 <tr>
 <td><a href="claude/skills/release-notes/SKILL.md">release-notes</a><br><sub>Claude · <a href="opencode/skills/release-notes/SKILL.md">opencode</a></sub></td>

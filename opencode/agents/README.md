@@ -16,7 +16,7 @@ A Markdown file with YAML frontmatter, then the system prompt:
 ---
 description: Use when the user wants a commit message for their staged changes.
 mode: subagent
-model: anthropic/claude-sonnet-5
+model: anthropic/claude-sonnet-4-5
 tools:
   write: false
   edit: false
@@ -32,7 +32,7 @@ You are a focused commit-message writer...
 |-------|----------|-------|
 | `description` | ✅ | *When* to use the agent. Drives automatic delegation for subagents. |
 | `mode` | — | `primary`, `subagent`, or `all`. Defaults to `all`. |
-| `model` | — | `provider/model`, e.g. `anthropic/claude-sonnet-5`. Omit to inherit the session model. |
+| `model` | — | `provider/model`, e.g. `anthropic/claude-sonnet-4-5`. Omit to inherit the session model. |
 | `temperature` | — | Sampling temperature (0.0–1.0). Low for analysis, higher for creativity. |
 | `tools` | — | **Map of tool → boolean.** Enable/disable individual tools (`read`, `write`, `edit`, `bash`, …). Everything not listed keeps its default. |
 | `permission` | — | Fine-grained `allow`/`ask`/`deny` rules (e.g. gate `bash` or `edit`). |
