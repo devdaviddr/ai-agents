@@ -33,10 +33,44 @@ to search), lays everything out, routes the connectors around other icons, and s
 
 ## How it works
 
-Under the hood the skill hands a compact **scene** (nodes on a grid, panels, edges) to a
-bundled pure-Python generator that computes all the geometry. See
-[SKILL.md](SKILL.md) for the workflow and [reference/azure-catalog.md](reference/azure-catalog.md)
-for the scene schema and design system. Nothing to install — it's stdlib-only.
+The core idea: **the model decides _what connects to what_; a deterministic Python generator
+decides _where everything goes_.** A language model is good at intent but unreliable at
+pixel-level layout — so it only ever writes a compact *scene*, and `scripts/azdiagram.py`
+computes the geometry, routes the connectors, and bakes the `.excalidraw` file.
+
+```mermaid
+flowchart TD
+    A["① One-line request<br/><i>diagram a fullstack app on Azure…</i>"]
+    B["② Model writes a <b>scene</b><br/>nodes on a grid · panels · edges<br/><i>what connects to what — never pixels</i>"]
+    C["③ build_scene()<br/>place → panels → route → glyphs"]
+    D["④ save()<br/>professionalize · darkify · embed icons · group · bind"]
+    E["⑤ .excalidraw file<br/>dark · editable · grouped · snapped"]
+    F["647 Azure icons + design catalog<br/><i>bundled · stdlib-only</i>"]
+    A --> B --> C --> D --> E
+    F -. feeds .-> C
+```
+
+**The pipeline**
+
+1. **Request** — you describe the architecture in plain language; the skill loads on a
+   description match (or `/azure-diagram`).
+2. **Compose** — the agent reads `SKILL.md` + the catalog, searches the icon set, and emits a
+   declarative *scene*: `{ title, grid, nodes[], panels[], edges[] }`. No coordinates.
+3. **Build — `build_scene()`** — *place* grid cells → pixel centres · *panels* auto-fit their
+   members and add the resource-group chip · *route* an obstacle-aware orthogonal router fans
+   edges into anchor slots and picks a path that crosses **no icon or caption** · *glyphs* icon +
+   caption grouped as one, nested inside the panel.
+4. **Save — `save()`** — professionalize (clean strokes / Helvetica) · darkify (dark canvas,
+   white ink) · embed each icon as a base64 SVG · assign group ids (innermost-first) · **bind
+   arrows to nodes** with `boundElements` back-refs, so they snap and follow when you drag a node.
+5. **Output** — a real `.excalidraw` file on your Desktop; optionally live-rendered inline via
+   the Excalidraw MCP (Claude only).
+
+Everything is stdlib-only and self-locates its bundled assets, so the identical engine runs on
+both Claude Code and opencode — only the last step differs (Claude can live-render; opencode
+writes the file). See [SKILL.md](SKILL.md) and
+[reference/azure-catalog.md](reference/azure-catalog.md) for the full scene schema and design
+system. Nothing to install.
 
 ## Install
 
