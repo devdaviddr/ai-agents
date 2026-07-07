@@ -12,7 +12,7 @@ Usage:
     azdiagram.py validate                [--from elements.json]   # else reads stdin
     azdiagram.py scene <out.excalidraw>  [--from scene.json]      # declarative layout (dark icon style)
     azdiagram.py catalog                                          # print style catalog
-    azdiagram.py icons                                            # list bundled Azure icons
+    azdiagram.py icons [query]                                    # list/search bundled Azure icons
 
 `elements` may be either a bare JSON array of elements, or a full Excalidraw document
 (an object with an "elements" key) — both are accepted. cameraUpdate / delete /
@@ -584,7 +584,8 @@ def main():
     scp.add_argument("--flat", action="store_true", help="skip the professional cleanup (keep the hand-drawn look)")
     scp.add_argument("--no-auto-group", dest="auto_group", action="store_false")
     sub.add_parser("catalog")
-    sub.add_parser("icons")
+    icp = sub.add_parser("icons", help="list bundled Azure icons; pass a query to filter")
+    icp.add_argument("query", nargs="?", help="substring filter, e.g. `icons openai`")
     args = p.parse_args()
 
     if args.cmd == "catalog":
@@ -594,7 +595,13 @@ def main():
         if not os.path.isdir(ICON_DIR):
             sys.exit("no icons installed yet (assets/icons is missing)")
         names = sorted(f[:-4] for f in os.listdir(ICON_DIR) if f.endswith(".svg"))
-        print(f"{len(names)} Azure icons available (use as iconId on an image element):")
+        total = len(names)
+        if args.query:
+            q = args.query.lower()
+            names = [n for n in names if q in n]
+            print(f"{len(names)}/{total} icons matching {args.query!r} (use as iconId):")
+        else:
+            print(f"{total} Azure icons available (use as iconId; filter with `icons <query>`):")
         for n in names:
             print("  " + n)
         return

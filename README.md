@@ -74,7 +74,7 @@ claude        # or: opencode
 <tr>
 <td><a href="claude/skills/azure-diagram/SKILL.md">azure-diagram</a><br><sub>Claude · <a href="opencode/skills/azure-diagram/SKILL.md">opencode</a></sub></td>
 <td>Skill</td>
-<td>Generates Azure cloud architecture diagrams as <code>.excalidraw</code> files with a consistent design system (category colours, zone containers, official Azure icons). Bundles a pure-Python generator + 22 icons.</td>
+<td>Generates Azure cloud architecture diagrams as <code>.excalidraw</code> files with a consistent design system (category colours, zone containers, official Azure icons). Bundles a pure-Python generator + the full official Azure icon set (~650 icons).</td>
 </tr>
 </table>
 
