@@ -1,10 +1,7 @@
-# Local CLI state written when running Claude Code / opencode inside the repo.
-# The agent/skill symlinks under .claude/ and .opencode/ ARE tracked — only
-# ignore ephemeral settings and session files here.
-.claude/settings.local.json
-.claude/settings.json
-.claude/.sessions/
-.opencode/*.json
-.opencode/cache/
+# The CLI discovery dirs are generated locally by ./scripts/link.sh (they hold
+# only symlinks back into claude/ and opencode/, which are the source of truth).
+# Not tracked — run the linker after cloning to enable in-repo runs.
+.claude/
+.opencode/
 
 .DS_Store

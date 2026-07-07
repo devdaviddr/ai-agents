@@ -1,1 +1,0 @@
-../../claude/agents/commit-writer.md
