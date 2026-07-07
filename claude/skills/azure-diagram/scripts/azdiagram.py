@@ -474,6 +474,9 @@ def build_scene(scene):
             cands.append(([sv, tv], tb, bt))
         cands.append(([sh, (mx, ay), (mx, by), th], rs, ls))   # Z through the column gap
         cands.append(([sv, (ax, my), (bx, my), tv], tb, bt))   # Z through the row gap
+        laneD, laneU = max(ay, by) + CH * 0.5, min(ay, by) - CH * 0.5
+        cands.append(([(ax, ay + h), (ax, laneD), (bx, laneD), (bx, by + h)], [0.5, 1], [0.5, 1]))  # U-dip below the row
+        cands.append(([(ax, ay - h), (ax, laneU), (bx, laneU), (bx, by - h)], [0.5, 0], [0.5, 0]))  # U-dip above the row
         cands.append(([sv, (ax, by), th], tb, ls))             # L: vertical then horizontal
         cands.append(([sh, (bx, ay), tv], rs, bt))             # L: horizontal then vertical
         pts, sfp, efp = next(((p, s, f) for p, s, f in cands if is_clean(p, a["id"], b["id"])), cands[-1])
