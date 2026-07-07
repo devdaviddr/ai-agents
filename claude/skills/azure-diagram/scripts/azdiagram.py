@@ -237,7 +237,11 @@ def apply_groups(elements, auto=True):
             if not isinstance(el, dict):
                 continue
             t, host = el.get("type"), None
-            if t == "image" and "fileId" in el:  # an embedded icon -> smallest containing node
+            if t == "image" and "fileId" in el and not explicit.get(el.get("id")):
+                # an embedded icon with no explicit group -> smallest containing node rectangle.
+                # Icons that DO carry an explicit group (the scene builder's icon+caption pairs)
+                # keep it — without this guard, an icon sitting inside a panel rectangle was
+                # auto-grouped with the PANEL and separated from its own caption.
                 holders = [r for r in rects if _center_inside(r, el)]
                 if holders:
                     host = min(holders, key=lambda r: r.get("width", 0) * r.get("height", 0))
@@ -427,8 +431,11 @@ def build_scene(scene):
         sys.exit("scene error: no nodes")
 
     panels, edges, glyphs = [], [], []
+    panel_of = {}   # node id -> panel group name (nodes nest inside their panel's group)
 
     # Panels first (drawn behind everything) — auto-fit the bounding box of member nodes.
+    # The panel's rect + chip icon + chip label share a group, and member nodes NEST inside it:
+    # one click selects the whole panel (moves members too), double-click drills into a node.
     for i, p in enumerate(scene.get("panels", [])):
         members = [nodes[m] for m in p.get("nodes", []) if m in nodes]
         if not members:
@@ -441,10 +448,14 @@ def build_scene(scene):
         y0 = min(m["_cy"] - IC / 2 for m in members) - pad - 24   # room for the label chip
         y1 = max(m["_capbot"] for m in members) + pad
         pid = p.get("id", f"panel{i}")
+        pgrp = f"pnl_{pid}"
+        for m in p.get("nodes", []):
+            panel_of.setdefault(m, pgrp)
         panels.append({"type": "rectangle", "id": pid, "x": round(x0, 1), "y": round(y0, 1),
                        "width": round(x1 - x0, 1), "height": round(y1 - y0, 1),
                        "roundness": {"type": 3}, "backgroundColor": "#161b22",
-                       "fillStyle": "solid", "strokeColor": "#4c9aff", "strokeWidth": 2})
+                       "fillStyle": "solid", "strokeColor": "#4c9aff", "strokeWidth": 2,
+                       "group": pgrp})
         if p.get("label"):
             plines = p["label"].split("\n")
             # optional chip icon; a "RESOURCE GROUP" label gets the official RG icon automatically
@@ -453,13 +464,14 @@ def build_scene(scene):
             if picon:
                 panels.append({"type": "image", "id": f"{pid}_pic", "iconId": picon,
                                "x": round(x0 + 16, 1), "y": round(y0 + 14, 1),
-                               "width": 26, "height": 26})
+                               "width": 26, "height": 26, "group": pgrp})
                 lx = x0 + 50
             panels.append({"type": "text", "id": f"{pid}_lbl", "x": round(lx, 1),
                            "y": round(y0 + 14, 1),
                            "width": round(max(len(l) for l in plines) * 14 * 0.75 + 6, 1),
                            "height": len(plines) * 20, "text": p["label"],
-                           "fontSize": 14, "strokeColor": "#4c9aff", "textAlign": "left"})
+                           "fontSize": 14, "strokeColor": "#4c9aff", "textAlign": "left",
+                           "group": pgrp})
 
     # Edges: orthogonal connectors routed to cross NEITHER another node's icon NOR its caption.
     # Each node gets connection anchors on its block boundary: sides & top on the icon, and the
@@ -475,19 +487,43 @@ def build_scene(scene):
         cx, cy = n["_cx"], n["_cy"]
         half = max(h, n["_capw"] / 2)
         geom[nid] = {"cx": cx, "cy": cy, "capbot": n["_capbot"],
-                     "box": (cx - half - M, cy - h - M, cx + half + M, n["_capbot"] + M)}
+                     "box": (cx - half - M, cy - h - M, cx + half + M, n["_capbot"] + M),
+                     "icbox": (cx - h, cy - h, cx + h, cy + h),
+                     "capbox": (cx - n["_capw"] / 2, cy + h + CAP_GAP,
+                                cx + n["_capw"] / 2, n["_capbot"])}
 
     def anchor(nid, side, off=0.0):
-        """(point, bind-element-id, is_centre). Slot offset shifts along the side."""
+        """(point, bind-element-id, bind-element-bbox). Slot offset shifts along the side."""
         g = geom[nid]
         cx, cy = g["cx"], g["cy"]
         if side == "top":
-            return ((cx + off, cy - h), f"{nid}_ic", off == 0)
+            return ((cx + off, cy - h), f"{nid}_ic", g["icbox"])
         if side == "bot":
-            return ((cx + off, g["capbot"]), f"{nid}_lbl", off == 0)
+            return ((cx + off, g["capbot"]), f"{nid}_lbl", g["capbox"])
         if side == "lft":
-            return ((cx - h, cy + off), f"{nid}_ic", off == 0)
-        return ((cx + h, cy + off), f"{nid}_ic", off == 0)
+            return ((cx - h, cy + off), f"{nid}_ic", g["icbox"])
+        return ((cx + h, cy + off), f"{nid}_ic", g["icbox"])
+
+    def _binding(adj, end, target_id, box):
+        """A real Excalidraw binding for an orthogonal segment adj->end touching `box`.
+        Emits BOTH schemas: focus/gap (v1, npm 0.18.x — focus is the signed ratio from
+        determineFocusDistance, ±2·offset/extent for axis-aligned entries) and
+        fixedPoint/mode (v2, current excalidraw.com). gap must be >= 1."""
+        x0, y0, x1, y1 = box
+        cxm, cym = (x0 + x1) / 2, (y0 + y1) / 2
+        w, hh = x1 - x0, y1 - y0
+        vx, vy = end[0] - adj[0], end[1] - adj[1]
+        cross = vx * (end[1] - cym) - vy * (end[0] - cxm)
+        mag = (2 * abs(end[0] - cxm) / w) if abs(vx) < 1e-9 else (2 * abs(end[1] - cym) / hh)
+        focus = (-1 if cross > 0 else 1) * mag if cross else 0.0
+        focus = max(-1.0, min(1.0, focus))                       # safety: keep on the focus image
+        fx, fy = round((end[0] - x0) / w, 6), round((end[1] - y0) / hh, 6)
+        fx = 0.5001 if fx == 0.5 else fx                         # exact 0.5 is nudged upstream anyway
+        fy = 0.5001 if fy == 0.5 else fy
+        return {"elementId": target_id, "focus": round(focus, 6), "gap": 1,
+                "fixedPoint": [fx, fy], "mode": "orbit"}
+
+    bound_refs = {}   # element id -> [{"id": arrow, "type": "arrow"}] back-references
 
     # Pass 1 — classify every edge and census which (node, side) each one touches.
     espec = []
@@ -517,8 +553,13 @@ def build_scene(scene):
     for (nid, side), lst in usage.items():
         lst.sort(key=lambda t: t[1])
         step = 26 if side in ("top", "bot") else 22
+        # clamp offsets inside the anchor element (icon, or the caption for "bot") so every
+        # bound endpoint stays on the element — heavy fan-in degrades spacing, never binding
+        ext = nodes[nid]["_capw"] if side == "bot" else IC
+        lim = max(0.0, ext / 2 - 6)
         for j, (ei, _) in enumerate(lst):
-            slot[(ei, nid, side)] = (j - (len(lst) - 1) / 2) * step
+            off = (j - (len(lst) - 1) / 2) * step
+            slot[(ei, nid, side)] = max(-lim, min(lim, off))
 
     # Pass 2 — route each edge through its slotted anchors.
     for i, (e, sid, tid, s_side, t_side, dx, dy, same_row, same_col) in enumerate(espec):
@@ -570,13 +611,14 @@ def build_scene(scene):
         eid = e.get("id", f"e{i}")
         arrow = {"type": "arrow", "id": eid, "x": round(x0, 1), "y": round(y0, 1),
                  "width": round(max(xs2) - min(xs2), 1), "height": round(max(ys2) - min(ys2), 1),
-                 "points": rel, "endArrowhead": "arrow"}
-        # Bind only centre anchors (focus 0 aims the element's centre; a slotted anchor would
-        # drift when Excalidraw re-solves the binding, so those endpoints stay unbound/exact).
-        if A[2]:
-            arrow["startBinding"] = {"elementId": A[1], "focus": 0, "gap": 2}
-        if B[2]:
-            arrow["endBinding"] = {"elementId": B[1], "focus": 0, "gap": 2}
+                 "points": rel, "endArrowhead": "arrow",
+                 # every endpoint is bound (snapped): correct focus even for slotted anchors,
+                 # dual v1+v2 schema so both npm 0.18.x and current excalidraw.com honour it
+                 "startBinding": _binding(pts[1], pts[0], A[1], A[2]),
+                 "endBinding": _binding(pts[-2], pts[-1], B[1], B[2])}
+        # the bound elements need back-references, or dragging a node leaves its arrows behind
+        bound_refs.setdefault(A[1], []).append({"id": eid, "type": "arrow"})
+        bound_refs.setdefault(B[1], []).append({"id": eid, "type": "arrow"})
         edges.append(arrow)
         if e.get("label"):
             # place the label at the midpoint of the longest segment, nudged off the line
@@ -598,15 +640,20 @@ def build_scene(scene):
     for n in scene.get("nodes", []):
         cx, cy = n["_cx"], n["_cy"]
         xs += [cx - IC / 2, cx + IC / 2]; ys += [cy - IC / 2, cy + IC / 2]
-        gid = f"n_{n['id']}"
-        glyphs.append({"type": "image", "id": f"{n['id']}_ic", "iconId": n["icon"],
-                       "x": round(cx - IC / 2, 1), "y": round(cy - IC / 2, 1),
-                       "width": IC, "height": IC, "group": gid})
-        glyphs.append({"type": "text", "id": f"{n['id']}_lbl", "x": round(cx - n["_capw"] / 2, 1),
-                       "y": round(cy + IC / 2 + CAP_GAP, 1), "width": n["_capw"],
-                       "height": n["_lines"] * CAP_LH,
-                       "text": n["label"], "fontSize": n.get("fontSize", 16),
-                       "textAlign": "center", "group": gid})
+        # innermost-first: the node's own group, then (when in a panel) the panel's group
+        gid = [f"n_{n['id']}"] + ([panel_of[n["id"]]] if n["id"] in panel_of else [])
+        ic = {"type": "image", "id": f"{n['id']}_ic", "iconId": n["icon"],
+              "x": round(cx - IC / 2, 1), "y": round(cy - IC / 2, 1),
+              "width": IC, "height": IC, "group": gid}
+        lbl = {"type": "text", "id": f"{n['id']}_lbl", "x": round(cx - n["_capw"] / 2, 1),
+               "y": round(cy + IC / 2 + CAP_GAP, 1), "width": n["_capw"],
+               "height": n["_lines"] * CAP_LH,
+               "text": n["label"], "fontSize": n.get("fontSize", 16),
+               "textAlign": "center", "group": gid}
+        for el in (ic, lbl):
+            if el["id"] in bound_refs:
+                el["boundElements"] = bound_refs[el["id"]]
+        glyphs += [ic, lbl]
 
     out = panels + edges + glyphs
     if scene.get("title"):

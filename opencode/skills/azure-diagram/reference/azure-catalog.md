@@ -132,6 +132,11 @@ A panel may set `"icon"` for its label chip, and any panel whose label contains
 resource groups as panels (`{"label": "RESOURCE GROUP\nrg-app-prod", "nodes": [...]}`).
 When several edges connect to the same side of a node, the builder spreads their anchor
 points into slots (fanned by destination) so connectors never overlap each other.
+Everything is edit-ready in Excalidraw: each icon + caption is a group (they move as one),
+nodes nest inside their panel's group (click = move the whole panel, double-click = drill
+into a node), and every arrow endpoint is bound to its element with back-references — drag
+a node and its arrows stay snapped. Bindings carry both Excalidraw schemas (focus/gap and
+fixedPoint/mode) so old and new editors both honour them.
 Every `icon` must be a bundled icon id (`icons` command). The builder validates its own
 output, and prints a stderr `WARNING` naming any edge it couldn't route without crossing a
 node block — if you see one, widen `cell_w`/`cell_h` or move a node.
