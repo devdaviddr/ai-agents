@@ -336,7 +336,8 @@ DARK / ICON-CENTRIC THEME  -- the Azure Architecture Center look:
   white elbow (right-angled) connectors.
 
   RECOMMENDED: use the `scene` command instead of hand-placing coordinates — it lays out
-  nodes (icon+caption) on a col/row grid, auto-fits panels, and routes bound elbow arrows,
+  nodes (icon+caption) on a col/row grid, auto-fits panels, and routes bound arrows that
+  avoid crossing other icons,
   dark+professional by default. Reliable for any topology:
       azdiagram.py scene out.excalidraw --from scene.json    (see reference/azure-catalog.md)
   The recipe below is for manual authoring (save with --dark):
@@ -360,6 +361,24 @@ DARK / ICON-CENTRIC THEME  -- the Azure Architecture Center look:
      an icon and the next row so captions don't collide. Keep everything inside ~2000x1200."""
 
 
+def _seg_hits_box(p, q, box):
+    """True if the axis-aligned segment p->q passes through box (x0,y0,x1,y1). Endpoints
+    that merely touch a box edge don't count (strict interior test)."""
+    x0, y0, x1, y1 = box
+    (px, py), (qx, qy) = p, q
+    if py == qy:                       # horizontal segment
+        if not (y0 < py < y1):
+            return False
+        lo, hi = sorted((px, qx))
+        return lo < x1 and hi > x0
+    if px == qx:                       # vertical segment
+        if not (x0 < px < x1):
+            return False
+        lo, hi = sorted((py, qy))
+        return lo < y1 and hi > y0
+    return False
+
+
 def build_scene(scene):
     """Lay out a declarative *scene* into a full Excalidraw elements array — the reliable way
     to produce the dark, icon-centric style for ANY topology without hand-computing geometry.
@@ -377,8 +396,8 @@ def build_scene(scene):
         "edges": [{"from":"fd","to":"api"}, {"from":"api","to":"blob"}]
       }
     Nodes are positioned by grid (col,row) OR explicit pixel centre (x,y). Captions are
-    centred under each icon; panels auto-fit their member nodes; edges become bound elbow
-    arrows routed orthogonally. Feed the result to `save`/`create_view`."""
+    centred under each icon; panels auto-fit their member nodes; edges become bound orthogonal
+    arrows routed to avoid crossing other icons. Feed the result to `save`/`create_view`."""
     g = scene.get("grid", {}) or {}
     CW = g.get("cell_w", 300); CH = g.get("cell_h", 230); IC = g.get("icon", 84)
     OX = g.get("origin_x", 170); OY = g.get("origin_y", 190)
@@ -421,30 +440,49 @@ def build_scene(scene):
                            "height": (p["label"].count("\n") + 1) * 20, "text": p["label"],
                            "fontSize": 14, "strokeColor": "#4c9aff", "textAlign": "left"})
 
-    # Edges: bound elbow arrows, orthogonally routed from icon edge to icon edge.
+    # Edges: orthogonal connectors ROUTED TO AVOID crossing other icons. For each edge we
+    # generate candidate right-angle paths and pick the first whose segments miss every other
+    # icon's box; explicit points (not `elbowed`) so Excalidraw draws exactly the clean route.
+    h = IC / 2
+    M = 18  # clearance an arrow must keep from any icon it isn't attached to
+    boxes = {nid: (n["_cx"] - h - M, n["_cy"] - h - M, n["_cx"] + h + M, n["_cy"] + h + M)
+             for nid, n in nodes.items()}
+
+    def is_clean(pts, sid, tid):
+        obstacles = [box for nid, box in boxes.items() if nid not in (sid, tid)]
+        return not any(_seg_hits_box(pts[j], pts[j + 1], box)
+                       for j in range(len(pts) - 1) for box in obstacles)
+
     for i, e in enumerate(scene.get("edges", [])):
         a, b = nodes.get(e.get("from")), nodes.get(e.get("to"))
         if not a or not b:
             sys.exit(f"scene error: edge references unknown node: {e}")
         ax, ay, bx, by = a["_cx"], a["_cy"], b["_cx"], b["_cy"]
-        horizontal = abs(by - ay) <= IC * 0.6
-        if horizontal:
-            if bx >= ax:
-                sx, sy, ex, ey, sfp, efp = ax + IC / 2, ay, bx - IC / 2, by, [1, 0.5], [0, 0.5]
-            else:
-                sx, sy, ex, ey, sfp, efp = ax - IC / 2, ay, bx + IC / 2, by, [0, 0.5], [1, 0.5]
-            pts = [[0, 0], [round(ex - sx, 1), round(ey - sy, 1)]]
-        else:
-            vdir = 1 if by > ay else -1
-            sx, sy, sfp = ax, ay + vdir * IC / 2, [0.5, 1 if vdir > 0 else 0]
-            if bx >= ax:
-                ex, ey, efp = bx - IC / 2, by, [0, 0.5]
-            else:
-                ex, ey, efp = bx + IC / 2, by, [1, 0.5]
-            pts = [[0, 0], [0, round(ey - sy, 1)], [round(ex - sx, 1), round(ey - sy, 1)]]
-        edges.append({"type": "arrow", "id": e.get("id", f"e{i}"), "x": round(sx, 1),
-                      "y": round(sy, 1), "width": round(abs(ex - sx), 1), "height": round(abs(ey - sy), 1),
-                      "points": pts, "elbowed": True, "endArrowhead": "arrow",
+        dx, dy = 1 if bx > ax else -1, 1 if by > ay else -1
+        mx, my = (ax + bx) / 2, (ay + by) / 2
+        R, L = [1, 0.5], [0, 0.5]      # side fixed-points
+        rs, ls = R if dx > 0 else L, L if dx > 0 else R          # source side / target side
+        tb, bt = [0.5, 1 if dy > 0 else 0], [0.5, 0 if dy > 0 else 1]  # source top-or-bottom / target
+        sh = (ax + dx * h, ay)         # exit points
+        sv = (ax, ay + dy * h)
+        th = (bx - dx * h, by)         # entry points
+        tv = (bx, by - dy * h)
+        cands = []                                              # (points, start_fp, end_fp)
+        if abs(by - ay) < IC * 0.5:                            # same row -> straight across
+            cands.append(([sh, th], rs, ls))
+        if abs(bx - ax) < IC * 0.5:                            # same col -> straight down/up
+            cands.append(([sv, tv], tb, bt))
+        cands.append(([sh, (mx, ay), (mx, by), th], rs, ls))   # Z through the column gap
+        cands.append(([sv, (ax, my), (bx, my), tv], tb, bt))   # Z through the row gap
+        cands.append(([sv, (ax, by), th], tb, ls))             # L: vertical then horizontal
+        cands.append(([sh, (bx, ay), tv], rs, bt))             # L: horizontal then vertical
+        pts, sfp, efp = next(((p, s, f) for p, s, f in cands if is_clean(p, a["id"], b["id"])), cands[-1])
+        x0, y0 = pts[0]
+        rel = [[round(px - x0, 1), round(py - y0, 1)] for px, py in pts]
+        xs2, ys2 = [px for px, _ in pts], [py for _, py in pts]
+        edges.append({"type": "arrow", "id": e.get("id", f"e{i}"), "x": round(x0, 1), "y": round(y0, 1),
+                      "width": round(max(xs2) - min(xs2), 1), "height": round(max(ys2) - min(ys2), 1),
+                      "points": rel, "endArrowhead": "arrow",
                       "startBinding": {"elementId": f"{a['id']}_ic", "fixedPoint": sfp},
                       "endBinding": {"elementId": f"{b['id']}_ic", "fixedPoint": efp}})
 
