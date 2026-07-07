@@ -119,14 +119,17 @@ paths per edge and picks a clean one):
     {"id": "repo", "icon": "container-registry","label": "Azure DevOps\nRepos","col": 4, "row": 1}
   ],
   "panels": [{"label": "CODEBASE\nSTORAGE", "nodes": ["blob", "repo"]}],
-  "edges":  [{"from": "fd", "to": "web"}, {"from": "web", "to": "apim"},
+  "edges":  [{"from": "fd", "to": "web"}, {"from": "web", "to": "apim", "label": "REST"},
              {"from": "apim", "to": "blob"}, {"from": "apim", "to": "repo"}]
 }
 ```
 
 Tips: keep the main flow on one `row` and branch with rows above/below; `grid.cell_w` /
 `cell_h` widen spacing for long captions; a node may set `"cap_w"` to widen its caption.
-Every `icon` must be a bundled icon id (`icons` command). The builder validates its own output.
+An edge may carry a short `"label"` — placed beside the connector's longest segment.
+Every `icon` must be a bundled icon id (`icons` command). The builder validates its own
+output, and prints a stderr `WARNING` naming any edge it couldn't route without crossing a
+node block — if you see one, widen `cell_w`/`cell_h` or move a node.
 
 ### Manual authoring (fine-grained control)
 

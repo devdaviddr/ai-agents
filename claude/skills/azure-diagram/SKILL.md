@@ -37,7 +37,7 @@ python3 "${CLAUDE_SKILL_DIR}/scripts/azdiagram.py" icons     # list the bundled 
      ```bash
      python3 "${CLAUDE_SKILL_DIR}/scripts/azdiagram.py" scene "<out>.excalidraw" --from /tmp/scene.json
      ```
-     Dark + professional are on by default. See the catalog's **"Dark / icon-centric theme → the `scene` builder"** section for the scene schema. Note: dark diagrams are white-on-dark, so open the saved file to view them (the MCP preview's white canvas would render white-on-white). To preview structure anyway, `scene --emit --from /tmp/scene.json` prints the elements JSON to pass to `create_view`.
+     Dark + professional are on by default; edges accept an optional short `"label"`, and the builder prints a stderr `WARNING` for any edge it can't route cleanly (widen the grid if you see one). See the catalog's **"Dark / icon-centric theme → the `scene` builder"** section for the scene schema. Note: dark diagrams are white-on-dark, so open the saved file to view them (the MCP preview's white canvas would render white-on-white). To preview structure anyway, `scene --emit --from /tmp/scene.json` prints the elements JSON to pass to `create_view`.
 
 6. **(Optional) Live render.** If an Excalidraw MCP is available in this session (e.g. a `create_view` / `export_to_excalidraw` tool), pass the same elements array to it to render the diagram inline and/or get a shareable excalidraw.com URL. If no such tool exists, skip this step silently — the `.excalidraw` file is the guaranteed deliverable.
 

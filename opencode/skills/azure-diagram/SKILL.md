@@ -46,7 +46,7 @@ The script resolves its own icons and catalog relative to itself, so once `$AZ` 
      ```bash
      python3 "$AZ" scene "<out>.excalidraw" --from /tmp/scene.json
      ```
-     Dark + professional are on by default. See the catalog's **"Dark / icon-centric theme → the `scene` builder"** section for the scene schema.
+     Dark + professional are on by default; edges accept an optional short `"label"`, and the builder prints a stderr `WARNING` for any edge it can't route cleanly (widen the grid if you see one). See the catalog's **"Dark / icon-centric theme → the `scene` builder"** section for the scene schema.
 
 6. **Open it.** opencode does not render Excalidraw inline, so tell the user to open the saved file at [excalidraw.com](https://excalidraw.com) (File → Open) or with the VS Code Excalidraw extension. (If you have configured an Excalidraw MCP you may also push the elements to it, but inline rendering isn't supported in the opencode UI.)
 

@@ -10,7 +10,9 @@ Obsidian, etc.) without hand-writing the file wrapper.
 Usage:
     azdiagram.py save  <out.excalidraw>  [--from elements.json]   # else reads stdin
     azdiagram.py validate                [--from elements.json]   # else reads stdin
+    azdiagram.py scene <out.excalidraw>  [--from scene.json]      # declarative layout (dark icon style)
     azdiagram.py catalog                                          # print style catalog
+    azdiagram.py icons                                            # list bundled Azure icons
 
 `elements` may be either a bare JSON array of elements, or a full Excalidraw document
 (an object with an "elements" key) — both are accepted. cameraUpdate / delete /
@@ -336,9 +338,9 @@ DARK / ICON-CENTRIC THEME  -- the Azure Architecture Center look:
   white elbow (right-angled) connectors.
 
   RECOMMENDED: use the `scene` command instead of hand-placing coordinates — it lays out
-  nodes (icon+caption) on a col/row grid, auto-fits panels, and routes bound arrows that
-  avoid crossing other icons OR their captions,
-  dark+professional by default. Reliable for any topology:
+  nodes (icon+caption) on a col/row grid, auto-fits panels, routes bound arrows that avoid
+  crossing other icons OR their captions (warns on stderr if a clean route is impossible),
+  and supports optional per-edge "label" text. Dark+professional by default:
       azdiagram.py scene out.excalidraw --from scene.json    (see reference/azure-catalog.md)
   The recipe below is for manual authoring (save with --dark):
 
@@ -393,11 +395,13 @@ def build_scene(scene):
           {"id":"api","icon":"api-management","label":"API Management","x":700,"y":560}
         ],
         "panels":[{"label":"CODEBASE\\nSTORAGE","nodes":["blob","repo"],"pad":46}],
-        "edges": [{"from":"fd","to":"api"}, {"from":"api","to":"blob"}]
+        "edges": [{"from":"fd","to":"api"}, {"from":"api","to":"blob","label":"artifacts"}]
       }
     Nodes are positioned by grid (col,row) OR explicit pixel centre (x,y). Captions are
     centred under each icon; panels auto-fit their member nodes; edges become bound orthogonal
-    arrows routed to avoid crossing other icons or their captions. Feed the result to `save`/`create_view`."""
+    arrows routed to avoid crossing other icons or their captions (a stderr WARNING names any
+    edge that couldn't be routed cleanly — widen the grid). An edge "label" is placed beside
+    its longest segment. Feed the result to `save`/`create_view`."""
     g = scene.get("grid", {}) or {}
     CW = g.get("cell_w", 300); CH = g.get("cell_h", 230); IC = g.get("icon", 84)
     OX = g.get("origin_x", 170); OY = g.get("origin_y", 190)
@@ -407,9 +411,17 @@ def build_scene(scene):
     for n in scene.get("nodes", []):
         if "id" not in n:
             sys.exit("scene error: every node needs an 'id'")
+        if "icon" not in n:
+            sys.exit(f"scene error: node {n['id']!r} needs an 'icon' (see the `icons` command)")
+        n.setdefault("label", n["id"])
         cx = n["x"] if "x" in n else OX + n.get("col", 0) * CW
         cy = n["y"] if "y" in n else OY + n.get("row", 0) * CH
+        # caption metrics, computed ONCE — panels, the edge router, and the glyph emitter
+        # all read these, so they can never drift apart again
         n["_cx"], n["_cy"] = cx, cy
+        n["_capw"] = n.get("cap_w", CW - 40)
+        n["_lines"] = n["label"].count("\n") + 1
+        n["_capbot"] = cy + IC / 2 + CAP_GAP + n["_lines"] * CAP_LH
         nodes[n["id"]] = n
     if not nodes:
         sys.exit("scene error: no nodes")
@@ -423,21 +435,22 @@ def build_scene(scene):
             continue
         pad = p.get("pad", 40)
         # include caption width (captions are wider than icons) so text stays inside the panel
-        half = lambda m: max(IC / 2, m.get("cap_w", CW - 40) / 2)
+        half = lambda m: max(IC / 2, m["_capw"] / 2)
         x0 = min(m["_cx"] - half(m) for m in members) - pad
         x1 = max(m["_cx"] + half(m) for m in members) + pad
         y0 = min(m["_cy"] - IC / 2 for m in members) - pad - 24   # room for the label chip
-        lines = max(m["label"].count("\n") + 1 for m in members)
-        y1 = max(m["_cy"] + IC / 2 for m in members) + CAP_GAP + lines * CAP_LH + pad
+        y1 = max(m["_capbot"] for m in members) + pad
         pid = p.get("id", f"panel{i}")
         panels.append({"type": "rectangle", "id": pid, "x": round(x0, 1), "y": round(y0, 1),
                        "width": round(x1 - x0, 1), "height": round(y1 - y0, 1),
                        "roundness": {"type": 3}, "backgroundColor": "#161b22",
                        "fillStyle": "solid", "strokeColor": "#4c9aff", "strokeWidth": 2})
         if p.get("label"):
+            plines = p["label"].split("\n")
             panels.append({"type": "text", "id": f"{pid}_lbl", "x": round(x0 + 18, 1),
-                           "y": round(y0 + 14, 1), "width": 180,
-                           "height": (p["label"].count("\n") + 1) * 20, "text": p["label"],
+                           "y": round(y0 + 14, 1),
+                           "width": round(max(len(l) for l in plines) * 14 * 0.62, 1),
+                           "height": len(plines) * 20, "text": p["label"],
                            "fontSize": 14, "strokeColor": "#4c9aff", "textAlign": "left"})
 
     # Edges: orthogonal connectors routed to cross NEITHER another node's icon NOR its caption.
@@ -449,32 +462,35 @@ def build_scene(scene):
     geom = {}
     for nid, n in nodes.items():
         cx, cy = n["_cx"], n["_cy"]
-        cap_w = n.get("cap_w", CW - 40)
-        cap_bot = cy + h + CAP_GAP + (n["label"].count("\n") + 1) * CAP_LH
-        half = max(h, cap_w / 2)
+        half = max(h, n["_capw"] / 2)
         geom[nid] = {
             "cx": cx, "cy": cy,
-            "box": (cx - half - M, cy - h - M, cx + half + M, cap_bot + M),
-            "top": ((cx, cy - h), f"{nid}_ic", [0.5, 0]),      # anchor = (point, bind-id, fixedPoint)
-            "bot": ((cx, cap_bot), f"{nid}_lbl", [0.5, 1]),    # below the caption text
+            "box": (cx - half - M, cy - h - M, cx + half + M, n["_capbot"] + M),
+            "top": ((cx, cy - h), f"{nid}_ic", [0.5, 0]),         # anchor = (point, bind-id, fixedPoint)
+            "bot": ((cx, n["_capbot"]), f"{nid}_lbl", [0.5, 1]),  # below the caption text
             "lft": ((cx - h, cy), f"{nid}_ic", [0, 0.5]),
             "rgt": ((cx + h, cy), f"{nid}_ic", [1, 0.5]),
         }
-
-    def clean(pts, sid, tid):
-        obs = [g["box"] for k, g in geom.items() if k not in (sid, tid)]
-        return not any(_seg_hits_box(pts[j], pts[j + 1], b)
-                       for j in range(len(pts) - 1) for b in obs)
 
     for i, e in enumerate(scene.get("edges", [])):
         sid, tid = e.get("from"), e.get("to")
         if sid not in geom or tid not in geom:
             sys.exit(f"scene error: edge references unknown node: {e}")
+        if sid == tid:
+            sys.exit(f"scene error: edge from {sid!r} to itself is not supported")
         gS, gT = geom[sid], geom[tid]
+        obstacles = [g["box"] for k, g in geom.items() if k not in (sid, tid)]
+
+        def clean(pts):
+            return not any(_seg_hits_box(pts[j], pts[j + 1], b)
+                           for j in range(len(pts) - 1) for b in obstacles)
+
         Sx, Sy, Tx, Ty = gS["cx"], gS["cy"], gT["cx"], gT["cy"]
         dx, dy = 1 if Tx > Sx else -1, 1 if Ty > Sy else -1
         same_row, same_col = abs(Ty - Sy) < IC * 0.5, abs(Tx - Sx) < IC * 0.5
-        mx, laneU = (Sx + Tx) / 2, min(Sy, Ty) - CH * 0.5
+        mx = (Sx + Tx) / 2
+        laneU = min(Sy, Ty) - CH * 0.5                       # clear lane above the rows involved
+        laneD = max(gS["box"][3], gT["box"][3]) + 20          # clear lane below both blocks
         Ss, Ts = (gS["rgt"] if dx > 0 else gS["lft"]), (gT["lft"] if dx > 0 else gT["rgt"])
         S_updown, T_updown = (gS["bot"] if dy > 0 else gS["top"]), (gT["top"] if dy > 0 else gT["bot"])
         cands = []   # each: (points, start_anchor, end_anchor)
@@ -483,20 +499,41 @@ def build_scene(scene):
         if same_col:                                                     # straight up/down
             cands.append(([S_updown[0], T_updown[0]], S_updown, T_updown))
         cands.append(([Ss[0], (mx, Sy), (mx, Ty), Ts[0]], Ss, Ts))      # Z through the column gap
-        A, B = gS["top"], gT["top"]                                      # dip UP over a row (caption-safe)
+        A, B = gS["top"], gT["top"]                                      # dip UP over the rows (caption-safe)
         cands.append(([A[0], (Sx, laneU), (Tx, laneU), B[0]], A, B))
+        A, B = gS["bot"], gT["bot"]                                      # dip DOWN below both captions
+        cands.append(([A[0], (Sx, laneD), (Tx, laneD), B[0]], A, B))
         cands.append(([Ss[0], (Tx, Sy), T_updown[0]], Ss, T_updown))    # L: side then vertical (enter top/bottom)
         cands.append(([S_updown[0], (Sx, Ty), Ts[0]], S_updown, Ts))    # L: vertical then side
-        (pts, A, B) = next((c for c in cands if clean(c[0], sid, tid)), cands[-1])
-        pts = list(pts); pts[0], pts[-1] = A[0], B[0]
+        choice = next((c for c in cands if clean(c[0])), None)
+        if choice is None:
+            choice = cands[-1]
+            print(f"WARNING: edge {sid}->{tid} could not avoid every node block — "
+                  f"widen grid spacing (cell_w/cell_h) or move a node", file=sys.stderr)
+        pts, A, B = choice
         x0, y0 = pts[0]
         rel = [[round(px - x0, 1), round(py - y0, 1)] for px, py in pts]
         xs2, ys2 = [px for px, _ in pts], [py for _, py in pts]
-        edges.append({"type": "arrow", "id": e.get("id", f"e{i}"), "x": round(x0, 1), "y": round(y0, 1),
+        eid = e.get("id", f"e{i}")
+        edges.append({"type": "arrow", "id": eid, "x": round(x0, 1), "y": round(y0, 1),
                       "width": round(max(xs2) - min(xs2), 1), "height": round(max(ys2) - min(ys2), 1),
                       "points": rel, "endArrowhead": "arrow",
                       "startBinding": {"elementId": A[1], "fixedPoint": A[2]},
                       "endBinding": {"elementId": B[1], "fixedPoint": B[2]}})
+        if e.get("label"):
+            # place the label at the midpoint of the longest segment, nudged off the line
+            segs = [(pts[j], pts[j + 1]) for j in range(len(pts) - 1)]
+            (p1, p2) = max(segs, key=lambda s: abs(s[1][0] - s[0][0]) + abs(s[1][1] - s[0][1]))
+            lmx, lmy = (p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2
+            llines = e["label"].split("\n")
+            lw = max(len(l) for l in llines) * 14 * 0.62
+            if p1[1] == p2[1]:  # horizontal segment: sit just above the line
+                lx, ly = lmx - lw / 2, lmy - len(llines) * 18 - 6
+            else:               # vertical segment: sit just right of the line
+                lx, ly = lmx + 10, lmy - len(llines) * 9
+            edges.append({"type": "text", "id": f"{eid}_txt", "x": round(lx, 1), "y": round(ly, 1),
+                          "width": round(lw, 1), "height": len(llines) * 18, "text": e["label"],
+                          "fontSize": 14, "textAlign": "center"})
 
     # Nodes on top: icon + centred caption, grouped so each moves as one.
     xs, ys = [], []
@@ -504,13 +541,12 @@ def build_scene(scene):
         cx, cy = n["_cx"], n["_cy"]
         xs += [cx - IC / 2, cx + IC / 2]; ys += [cy - IC / 2, cy + IC / 2]
         gid = f"n_{n['id']}"
-        cap_w = n.get("cap_w", CW - 40)
         glyphs.append({"type": "image", "id": f"{n['id']}_ic", "iconId": n["icon"],
                        "x": round(cx - IC / 2, 1), "y": round(cy - IC / 2, 1),
                        "width": IC, "height": IC, "group": gid})
-        lines = n["label"].count("\n") + 1
-        glyphs.append({"type": "text", "id": f"{n['id']}_lbl", "x": round(cx - cap_w / 2, 1),
-                       "y": round(cy + IC / 2 + CAP_GAP, 1), "width": cap_w, "height": lines * CAP_LH,
+        glyphs.append({"type": "text", "id": f"{n['id']}_lbl", "x": round(cx - n["_capw"] / 2, 1),
+                       "y": round(cy + IC / 2 + CAP_GAP, 1), "width": n["_capw"],
+                       "height": n["_lines"] * CAP_LH,
                        "text": n["label"], "fontSize": n.get("fontSize", 16),
                        "textAlign": "center", "group": gid})
 
@@ -529,7 +565,8 @@ def main():
     sub = p.add_subparsers(dest="cmd", required=True)
     for name in ("save", "validate"):
         sp = sub.add_parser(name)
-        sp.add_argument("out", nargs="?" if name == "validate" else None)
+        if name == "save":
+            sp.add_argument("out")
         sp.add_argument("--from", dest="from_file", help="read elements JSON from this file (else stdin)")
         if name == "save":
             sp.add_argument("--professional", action="store_true",
