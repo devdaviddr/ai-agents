@@ -1,0 +1,1 @@
+../../opencode/agents/commit-writer.md

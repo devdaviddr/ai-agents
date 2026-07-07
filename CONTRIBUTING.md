@@ -4,7 +4,8 @@ Each item is a self-contained agent or skill for either Claude Code or opencode.
 
 1. Drop the file/folder in the right place (`claude/` or `opencode/`, then `agents/` or `skills/`).
 2. Keep names kebab-case and identical across platforms when an item ships for both.
-3. Add a row to the matching table in [README.md](README.md) with a one-line description.
+3. Run `./scripts/link.sh` to wire the new item into the repo's `.claude/`/`.opencode/` discovery dirs (so it runs in-repo), and commit the new symlink.
+4. Add a row to the catalog in [README.md](README.md) **and** to the "Items in this collection" table in the relevant guide, each with a one-line description.
 
 ## File formats
 
