@@ -1,0 +1,60 @@
+# Contributing
+
+Each item is a self-contained agent or skill for either Claude Code or opencode. To add one:
+
+1. Drop the file/folder in the right place (`claude/` or `opencode/`, then `agents/` or `skills/`).
+2. Keep names kebab-case and identical across platforms when an item ships for both.
+3. Add a row to the matching table in [README.md](README.md) with a one-line description.
+
+## File formats
+
+### Claude Code agent — `claude/agents/<name>.md`
+Single markdown file with YAML frontmatter. `tools` and `model` are optional (omit `tools` to inherit all).
+
+```markdown
+---
+name: my-agent
+description: When this agent should be invoked.
+tools: Read, Grep, Glob, Bash
+model: sonnet
+---
+
+System prompt for the subagent...
+```
+
+### Claude Code skill — `claude/skills/<name>/SKILL.md`
+A folder containing `SKILL.md` (plus any supporting files). Frontmatter needs `name` and `description`; the description should say *when* to trigger.
+
+```markdown
+---
+name: my-skill
+description: What it does and when to use it. Trigger on "...".
+---
+
+# My Skill
+Instructions the model follows when the skill is invoked...
+```
+
+### opencode agent — `opencode/agents/<name>.md`
+Markdown with frontmatter. `mode` is `subagent`, `primary`, or `all`. `tools` is a map of tool → boolean.
+
+```markdown
+---
+description: When this agent should be invoked.
+mode: subagent
+model: anthropic/claude-sonnet-5
+tools:
+  write: false
+  edit: false
+---
+
+System prompt for the agent...
+```
+
+### opencode skill — `opencode/skills/<name>/SKILL.md`
+Same [Agent Skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills) `SKILL.md` format as Claude Code.
+
+## Checklist
+- [ ] File in the correct `platform/type/` folder
+- [ ] Frontmatter valid for the target platform
+- [ ] Row added to the README table with a clear one-line description
