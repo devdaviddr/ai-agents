@@ -331,9 +331,15 @@ Conventions: fontSize >=16 body / >=20 titles; node min 120x60, prefer 260x90;
 20-30px gaps; dashed grey arrows (#b0b0b0) for auth/OIDC, solid black for data flow,
 category-stroke arrows to colour-code a flow. No emoji (won't render).
 
-DARK / ICON-CENTRIC THEME  (save with --dark)  -- the Azure Architecture Center look:
+DARK / ICON-CENTRIC THEME  -- the Azure Architecture Center look:
   Instead of a coloured box per service, the ICON *is* the node. Dark canvas, white text,
-  white elbow (right-angled) connectors. This is what --dark + this recipe produce.
+  white elbow (right-angled) connectors.
+
+  RECOMMENDED: use the `scene` command instead of hand-placing coordinates — it lays out
+  nodes (icon+caption) on a col/row grid, auto-fits panels, and routes bound elbow arrows,
+  dark+professional by default. Reliable for any topology:
+      azdiagram.py scene out.excalidraw --from scene.json    (see reference/azure-catalog.md)
+  The recipe below is for manual authoring (save with --dark):
 
   1. Icon node = a big icon image + a white caption below it, NO rectangle:
      {"type":"image","id":"api_ic","iconId":"api-management","x":..,"y":..,"width":84,"height":84}
@@ -354,6 +360,120 @@ DARK / ICON-CENTRIC THEME  (save with --dark)  -- the Azure Architecture Center 
      an icon and the next row so captions don't collide. Keep everything inside ~2000x1200."""
 
 
+def build_scene(scene):
+    """Lay out a declarative *scene* into a full Excalidraw elements array — the reliable way
+    to produce the dark, icon-centric style for ANY topology without hand-computing geometry.
+
+    Scene schema (all coordinates are handled for you):
+      {
+        "title": "My Architecture",                       # optional, centred at top
+        "grid":  {"cell_w":300,"cell_h":230,"icon":84,    # optional overrides
+                  "origin_x":170,"origin_y":190},
+        "nodes": [                                          # each = an icon + caption
+          {"id":"fd","icon":"front-door","label":"Azure Front\\nDoor","col":0,"row":1},
+          {"id":"api","icon":"api-management","label":"API Management","x":700,"y":560}
+        ],
+        "panels":[{"label":"CODEBASE\\nSTORAGE","nodes":["blob","repo"],"pad":46}],
+        "edges": [{"from":"fd","to":"api"}, {"from":"api","to":"blob"}]
+      }
+    Nodes are positioned by grid (col,row) OR explicit pixel centre (x,y). Captions are
+    centred under each icon; panels auto-fit their member nodes; edges become bound elbow
+    arrows routed orthogonally. Feed the result to `save`/`create_view`."""
+    g = scene.get("grid", {}) or {}
+    CW = g.get("cell_w", 300); CH = g.get("cell_h", 230); IC = g.get("icon", 84)
+    OX = g.get("origin_x", 170); OY = g.get("origin_y", 190)
+    CAP_GAP, CAP_LH = 14, 22
+
+    nodes = {}
+    for n in scene.get("nodes", []):
+        if "id" not in n:
+            sys.exit("scene error: every node needs an 'id'")
+        cx = n["x"] if "x" in n else OX + n.get("col", 0) * CW
+        cy = n["y"] if "y" in n else OY + n.get("row", 0) * CH
+        n["_cx"], n["_cy"] = cx, cy
+        nodes[n["id"]] = n
+    if not nodes:
+        sys.exit("scene error: no nodes")
+
+    panels, edges, glyphs = [], [], []
+
+    # Panels first (drawn behind everything) — auto-fit the bounding box of member nodes.
+    for i, p in enumerate(scene.get("panels", [])):
+        members = [nodes[m] for m in p.get("nodes", []) if m in nodes]
+        if not members:
+            continue
+        pad = p.get("pad", 40)
+        # include caption width (captions are wider than icons) so text stays inside the panel
+        half = lambda m: max(IC / 2, m.get("cap_w", CW - 40) / 2)
+        x0 = min(m["_cx"] - half(m) for m in members) - pad
+        x1 = max(m["_cx"] + half(m) for m in members) + pad
+        y0 = min(m["_cy"] - IC / 2 for m in members) - pad - 24   # room for the label chip
+        lines = max(m["label"].count("\n") + 1 for m in members)
+        y1 = max(m["_cy"] + IC / 2 for m in members) + CAP_GAP + lines * CAP_LH + pad
+        pid = p.get("id", f"panel{i}")
+        panels.append({"type": "rectangle", "id": pid, "x": round(x0, 1), "y": round(y0, 1),
+                       "width": round(x1 - x0, 1), "height": round(y1 - y0, 1),
+                       "roundness": {"type": 3}, "backgroundColor": "#161b22",
+                       "fillStyle": "solid", "strokeColor": "#4c9aff", "strokeWidth": 2})
+        if p.get("label"):
+            panels.append({"type": "text", "id": f"{pid}_lbl", "x": round(x0 + 18, 1),
+                           "y": round(y0 + 14, 1), "width": 180,
+                           "height": (p["label"].count("\n") + 1) * 20, "text": p["label"],
+                           "fontSize": 14, "strokeColor": "#4c9aff", "textAlign": "left"})
+
+    # Edges: bound elbow arrows, orthogonally routed from icon edge to icon edge.
+    for i, e in enumerate(scene.get("edges", [])):
+        a, b = nodes.get(e.get("from")), nodes.get(e.get("to"))
+        if not a or not b:
+            sys.exit(f"scene error: edge references unknown node: {e}")
+        ax, ay, bx, by = a["_cx"], a["_cy"], b["_cx"], b["_cy"]
+        horizontal = abs(by - ay) <= IC * 0.6
+        if horizontal:
+            if bx >= ax:
+                sx, sy, ex, ey, sfp, efp = ax + IC / 2, ay, bx - IC / 2, by, [1, 0.5], [0, 0.5]
+            else:
+                sx, sy, ex, ey, sfp, efp = ax - IC / 2, ay, bx + IC / 2, by, [0, 0.5], [1, 0.5]
+            pts = [[0, 0], [round(ex - sx, 1), round(ey - sy, 1)]]
+        else:
+            vdir = 1 if by > ay else -1
+            sx, sy, sfp = ax, ay + vdir * IC / 2, [0.5, 1 if vdir > 0 else 0]
+            if bx >= ax:
+                ex, ey, efp = bx - IC / 2, by, [0, 0.5]
+            else:
+                ex, ey, efp = bx + IC / 2, by, [1, 0.5]
+            pts = [[0, 0], [0, round(ey - sy, 1)], [round(ex - sx, 1), round(ey - sy, 1)]]
+        edges.append({"type": "arrow", "id": e.get("id", f"e{i}"), "x": round(sx, 1),
+                      "y": round(sy, 1), "width": round(abs(ex - sx), 1), "height": round(abs(ey - sy), 1),
+                      "points": pts, "elbowed": True, "endArrowhead": "arrow",
+                      "startBinding": {"elementId": f"{a['id']}_ic", "fixedPoint": sfp},
+                      "endBinding": {"elementId": f"{b['id']}_ic", "fixedPoint": efp}})
+
+    # Nodes on top: icon + centred caption, grouped so each moves as one.
+    xs, ys = [], []
+    for n in scene.get("nodes", []):
+        cx, cy = n["_cx"], n["_cy"]
+        xs += [cx - IC / 2, cx + IC / 2]; ys += [cy - IC / 2, cy + IC / 2]
+        gid = f"n_{n['id']}"
+        cap_w = n.get("cap_w", CW - 40)
+        glyphs.append({"type": "image", "id": f"{n['id']}_ic", "iconId": n["icon"],
+                       "x": round(cx - IC / 2, 1), "y": round(cy - IC / 2, 1),
+                       "width": IC, "height": IC, "group": gid})
+        lines = n["label"].count("\n") + 1
+        glyphs.append({"type": "text", "id": f"{n['id']}_lbl", "x": round(cx - cap_w / 2, 1),
+                       "y": round(cy + IC / 2 + CAP_GAP, 1), "width": cap_w, "height": lines * CAP_LH,
+                       "text": n["label"], "fontSize": n.get("fontSize", 16),
+                       "textAlign": "center", "group": gid})
+
+    out = panels + edges + glyphs
+    if scene.get("title"):
+        cx = (min(xs) + max(xs)) / 2
+        tw = max(len(l) for l in scene["title"].split("\n")) * 30 * 0.62
+        out.insert(0, {"type": "text", "id": "title", "x": round(cx - tw / 2, 1),
+                       "y": round(min(ys) - 110, 1), "width": round(tw, 1), "height": 44,
+                       "text": scene["title"], "fontSize": 30, "textAlign": "center"})
+    return out
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -368,6 +488,14 @@ def main():
                             help="dark canvas: near-black background + white text/arrows (pairs with the icon-centric recipe)")
             sp.add_argument("--no-auto-group", dest="auto_group", action="store_false",
                             help="disable auto-grouping a node's box+icon+label (explicit `group` still applies)")
+    scp = sub.add_parser("scene", help="lay out a declarative scene (nodes/panels/edges) into a diagram")
+    scp.add_argument("out", nargs="?")
+    scp.add_argument("--from", dest="from_file", help="read the scene JSON from this file (else stdin)")
+    scp.add_argument("--emit", action="store_true",
+                     help="print the built elements JSON (for create_view / preview) instead of saving a file")
+    scp.add_argument("--light", action="store_true", help="light canvas instead of the default dark")
+    scp.add_argument("--flat", action="store_true", help="skip the professional cleanup (keep the hand-drawn look)")
+    scp.add_argument("--no-auto-group", dest="auto_group", action="store_false")
     sub.add_parser("catalog")
     sub.add_parser("icons")
     args = p.parse_args()
@@ -382,6 +510,27 @@ def main():
         print(f"{len(names)} Azure icons available (use as iconId on an image element):")
         for n in names:
             print("  " + n)
+        return
+
+    if args.cmd == "scene":
+        raw = open(args.from_file, encoding="utf-8").read() if args.from_file else sys.stdin.read()
+        try:
+            scene = json.loads(raw)
+        except json.JSONDecodeError as e:
+            sys.exit(f"error: scene is not valid JSON: {e}")
+        elements = build_scene(scene)
+        errors = validate(elements)
+        if errors:
+            print("BUILD PRODUCED INVALID ELEMENTS:", file=sys.stderr)
+            for e in errors:
+                print("  " + e, file=sys.stderr)
+            sys.exit(1)
+        if args.emit:
+            print(json.dumps(elements))
+            return
+        if not args.out:
+            sys.exit("scene: provide an output path (e.g. scene out.excalidraw --from scene.json) or use --emit")
+        save(elements, args.out, professional=not args.flat, group=args.auto_group, dark=not args.light)
         return
 
     elements = load(args)

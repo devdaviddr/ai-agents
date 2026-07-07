@@ -32,8 +32,12 @@ python3 "${CLAUDE_SKILL_DIR}/scripts/azdiagram.py" icons     # list the bundled 
    **Always pass `--professional`** unless the user explicitly wants the sketchy look — it forces `roughness: 0` (clean lines) and `fontFamily: 2` (Helvetica, not the Virgil hand-drawn font), which is what makes it read as an Azure Architecture Center diagram. Default the output to `~/Desktop/<Name>-Architecture.excalidraw` unless the user gave a path; confirm before overwriting an existing file.
 
    **Two visual styles** — pick based on what the user wants:
-   - *Pastel-box (default):* coloured category boxes on a white canvas (see the catalog's node recipe).
-   - *Dark / icon-centric:* add **`--dark`** for a near-black canvas where the **icon is the node** (no box), white captions, and white right-angled (elbow) connectors — the modern Microsoft-docs look. Follow the **"Dark / icon-centric theme"** recipe in the catalog. `--dark` and `--professional` combine. Note: `--dark` diagrams have white text, so open the saved file to view them — the MCP live preview (white canvas) would render white-on-white.
+   - *Pastel-box (default):* coloured category boxes on a white canvas (see the catalog's node recipe). Hand-author the elements array and `save --professional`.
+   - *Dark / icon-centric* (the modern Microsoft-docs look — near-black canvas, the icon *is* the node, white captions, white elbow connectors): **use the `scene` builder** — don't hand-place coordinates. Describe a scene (nodes on a col/row grid + panels + edges) and the builder computes all geometry consistently, which is what makes this style work reliably across many diagrams:
+     ```bash
+     python3 "${CLAUDE_SKILL_DIR}/scripts/azdiagram.py" scene "<out>.excalidraw" --from /tmp/scene.json
+     ```
+     Dark + professional are on by default. See the catalog's **"Dark / icon-centric theme → the `scene` builder"** section for the scene schema. Note: dark diagrams are white-on-dark, so open the saved file to view them (the MCP preview's white canvas would render white-on-white). To preview structure anyway, `scene --emit --from /tmp/scene.json` prints the elements JSON to pass to `create_view`.
 
 6. **(Optional) Live render.** If an Excalidraw MCP is available in this session (e.g. a `create_view` / `export_to_excalidraw` tool), pass the same elements array to it to render the diagram inline and/or get a shareable excalidraw.com URL. If no such tool exists, skip this step silently — the `.excalidraw` file is the guaranteed deliverable.
 

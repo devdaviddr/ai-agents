@@ -86,11 +86,51 @@ For a professional, Azure-Architecture-Center look, save with `--professional` (
 
 ## Dark / icon-centric theme (the Azure Architecture Center look)
 
-Save with **`--dark`** for the modern Microsoft-docs aesthetic: a **near-black canvas**, the
-**icon itself as the node** (no coloured box), **white captions**, and **white right-angled
-(elbow) connectors**. `--dark` sets the dark background and turns near-black text/arrows white;
-you supply the icon-centric layout. Use this when the user wants a clean, dark, icon-forward
-diagram rather than the pastel-box house style.
+The modern Microsoft-docs aesthetic: a **near-black canvas**, the **icon itself as the node**
+(no coloured box), **white captions**, and **white right-angled (elbow) connectors**. Use this
+when the user wants a clean, dark, icon-forward diagram rather than the pastel-box house style.
+
+### Recommended: the `scene` builder (reliable for ANY topology)
+
+Don't hand-compute icon coordinates, caption centring, panel boxes, or elbow points — describe
+a **scene** and the builder lays it all out consistently. This is the way to make this style
+work for a wide variety of diagrams.
+
+```bash
+python3 "<skill-dir>/scripts/azdiagram.py" scene "<out>.excalidraw" --from scene.json
+# dark + professional are ON by default; add --light for a white canvas, --emit to print
+# the elements JSON (e.g. to also preview via the Excalidraw MCP create_view).
+```
+
+Scene schema — place each node on a `col`/`row` grid (or explicit `x`/`y`); the builder
+positions icons, centres captions under them, auto-fits panels around their members, and
+draws bound elbow arrows:
+
+```json
+{
+  "title": "Azure-based RAG Application Architecture",
+  "grid": {"cell_w": 300, "cell_h": 230, "icon": 84},
+  "nodes": [
+    {"id": "fd",   "icon": "front-door",     "label": "Azure Front\nDoor",  "col": 0, "row": 2},
+    {"id": "web",  "icon": "app-service",    "label": "Web Interface",       "col": 1, "row": 2},
+    {"id": "apim", "icon": "api-management", "label": "Azure API\nManagement","col": 2, "row": 2},
+    {"id": "blob", "icon": "storage-account","label": "Azure Blob\nStorage", "col": 4, "row": 0},
+    {"id": "repo", "icon": "container-registry","label": "Azure DevOps\nRepos","col": 4, "row": 1}
+  ],
+  "panels": [{"label": "CODEBASE\nSTORAGE", "nodes": ["blob", "repo"]}],
+  "edges":  [{"from": "fd", "to": "web"}, {"from": "web", "to": "apim"},
+             {"from": "apim", "to": "blob"}, {"from": "apim", "to": "repo"}]
+}
+```
+
+Tips: keep the main flow on one `row` and branch with rows above/below; `grid.cell_w` /
+`cell_h` widen spacing for long captions; a node may set `"cap_w"` to widen its caption.
+Every `icon` must be a bundled icon id (`icons` command). The builder validates its own output.
+
+### Manual authoring (fine-grained control)
+
+If you need to hand-place elements, save with **`--dark`** (sets the dark background and turns
+near-black text/arrows white) and follow the recipes below.
 
 **Icon node — a big icon with a white caption below it, no rectangle:**
 
