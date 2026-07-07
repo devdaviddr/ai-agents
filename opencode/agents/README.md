@@ -33,9 +33,11 @@ You are a focused commit-message writer...
 | `description` | ✅ | *When* to use the agent. Drives automatic delegation for subagents. |
 | `mode` | — | `primary`, `subagent`, or `all`. Defaults to `all`. |
 | `model` | — | `provider/model`, e.g. `anthropic/claude-sonnet-5`. Omit to inherit the session model. |
-| `temperature` | — | Sampling temperature. |
+| `temperature` | — | Sampling temperature (0.0–1.0). Low for analysis, higher for creativity. |
 | `tools` | — | **Map of tool → boolean.** Enable/disable individual tools (`read`, `write`, `edit`, `bash`, …). Everything not listed keeps its default. |
-| `permission` | — | Fine-grained ask/allow/deny rules (e.g. gate `bash` or `edit`). |
+| `permission` | — | Fine-grained `allow`/`ask`/`deny` rules (e.g. gate `bash` or `edit`). |
+| `prompt` | — | System prompt as a field, instead of (or in addition to) the markdown body. |
+| `disable` | — | `true` to deactivate the agent. |
 
 > **Note the format difference from Claude Code:** opencode uses a **`tools:` map of booleans**, not a comma-separated allowlist, and there is no `name` field — the filename is the agent name.
 
@@ -49,12 +51,13 @@ Agents can also be declared inline in `opencode.json` under the `agent` key; the
 
 ## Install
 ```bash
-# project-scoped — note the SINGULAR "agent" directory
-cp commit-writer.md /path/to/project/.opencode/agent/
+# project-scoped
+cp commit-writer.md /path/to/project/.opencode/agents/
 
 # global (all projects)
-cp commit-writer.md ~/.config/opencode/agent/
+cp commit-writer.md ~/.config/opencode/agents/
 ```
+The canonical directory is the plural `agents/`; the singular `agent/` also works for backwards compatibility.
 
 ## Writing a good agent
 - **Disable tools you don't need** in the `tools` map — a reviewer sets `write: false`, `edit: false`.

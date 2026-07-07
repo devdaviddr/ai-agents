@@ -2,9 +2,9 @@
 
 > Part of the [ai-agents](../../README.md) collection · see also [opencode agents](../agents/README.md) · [Claude skills](../../claude/skills/README.md)
 
-[opencode](https://opencode.ai) supports **skills** following the same [Agent Skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills) spec as Claude Code: a packaged capability, loaded on demand, that runs **in the current context** and teaches the model *how* to do something.
+[opencode](https://opencode.ai) supports **skills** following the [Agent Skills](https://agentskills.io) open standard — the same `SKILL.md` format as Claude Code: a packaged capability, discovered from your repo or home directory and loaded on demand, that teaches the agent *how* to do something.
 
-Because the `SKILL.md` format is shared across both platforms, a skill is usually **portable** — the main difference is the install location and directory name.
+Because the `SKILL.md` format is shared across both platforms, a skill is usually **portable** — the main difference is the install location. opencode even reads `.claude/skills/` directly, so a Claude skill is often picked up with no changes at all.
 
 ## Anatomy
 
@@ -29,21 +29,24 @@ Instructions the model follows when the skill fires...
 ### Frontmatter fields
 | Field | Required | Notes |
 |-------|----------|-------|
-| `name` | ✅ | kebab-case; matches the folder name. |
+| `name` | ✅ | kebab-case; matches the folder name. Required by the Agent Skills standard. |
 | `description` | ✅ | What it does **and when to trigger** — the only part loaded up front. |
 
+## How it's triggered
+The agent loads a skill by calling its built-in **`skill` tool** (e.g. `skill({ name: "release-notes" })`) when the task matches the skill's `description`. So — as on Claude — the `description` is the trigger. Note opencode skills are agent-invoked; they aren't run with a `/slash` command (that's opencode's separate *commands* feature).
+
 ## Progressive disclosure
-As with Claude, only the `description` stays in context; the full body and any supporting files load when the skill actually fires. Many skills can sit installed without weighing down the session.
+Only the `description` stays in context; the full body and any supporting files load when the skill actually fires. Many skills can sit installed without weighing down the session.
 
 ## Install
 ```bash
-# project-scoped — note the SINGULAR "skill" directory
-cp -R release-notes /path/to/project/.opencode/skill/
+# project-scoped
+cp -R release-notes /path/to/project/.opencode/skills/
 
 # global (all projects)
-cp -R release-notes ~/.config/opencode/skill/
+cp -R release-notes ~/.config/opencode/skills/
 ```
-Copy the **whole folder** so supporting files travel with `SKILL.md`.
+Copy the **whole folder** so supporting files travel with `SKILL.md`. The canonical directory is the plural `skills/`; the singular `skill/` also works for backwards compatibility.
 
 ## Skill vs. agent in opencode
 | | Skill | Agent |
@@ -55,7 +58,7 @@ Copy the **whole folder** so supporting files travel with `SKILL.md`.
 Reach for a **skill** to teach a procedure; reach for an **[agent](../agents/README.md)** to offload a task or define a working mode.
 
 ## Portability note
-This skill is byte-for-byte compatible with the [Claude version](../../claude/skills/release-notes/SKILL.md) — the only thing that changes between platforms is where you copy it (`.opencode/skill/` vs `.claude/skills/`).
+This skill is byte-for-byte compatible with the [Claude version](../../claude/skills/release-notes/SKILL.md) — the only thing that changes between platforms is where you copy it (`.opencode/skills/` vs `.claude/skills/`), and opencode can even read the Claude copy directly.
 
 ## Items in this collection
 | Skill | Description |

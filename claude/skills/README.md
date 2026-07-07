@@ -27,16 +27,19 @@ Instructions the model follows when the skill fires...
 ### Frontmatter fields
 | Field | Required | Notes |
 |-------|----------|-------|
-| `name` | ✅ | kebab-case; matches the folder name and the `/name` invocation. |
-| `description` | ✅ | What it does **and when to trigger**. This is the only part loaded up front, so make it a precise trigger. |
-| `allowed-tools` | — | Optional restriction on which tools the skill may use. |
+| `name` | Optional* | Display label; defaults to the folder name. The **folder name** is what you type after `/`, so keep them the same. Lowercase + hyphens. |
+| `description` | Recommended | What it does **and when to trigger**. This is the only part loaded up front, so make it a precise trigger. If omitted, Claude falls back to the first paragraph of the body. Put the key use case first (the listing truncates long text). |
+| `allowed-tools` | — | Tools Claude may use *without a permission prompt* while the skill is active. Space/comma-separated or a YAML list. |
+| `disable-model-invocation` | — | `true` = only *you* can run it via `/name`; Claude won't auto-trigger it. Use for side-effecting workflows (`/deploy`, `/commit`) you want to control the timing of. |
+
+\*Strictly, Claude Code needs neither field — but the [Agent Skills standard](https://agentskills.io) and opencode both require `name` **and** `description`, so include both for portability.
 
 ## Progressive disclosure
 Only the `description` is kept in context at all times. When a task matches, Claude reads the full `SKILL.md`; supporting files are pulled in **only if the instructions reference them**. This keeps skills cheap to have installed — you can carry many without bloating the context.
 
 ## How it's invoked
-- **Model-triggered** — the `description` matches the task and Claude loads the skill automatically.
-- **Explicit** — the user runs `/release-notes`.
+- **Model-triggered** — the `description` matches the task and Claude loads the skill automatically (unless `disable-model-invocation: true`).
+- **Explicit** — the user runs `/release-notes` (the command name comes from the folder name).
 
 ## Install
 ```bash

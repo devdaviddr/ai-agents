@@ -20,7 +20,7 @@ An **agent** (in Claude Code, a *subagent*) is a self-contained assistant define
 Think of an agent as a colleague you hand a ticket to: they go away, do the work in their own workspace, and come back with a result. You don't watch them think; you get their final answer.
 
 ### How agents work
-1. **Discovery.** Claude Code loads every agent file it finds (`~/.claude/agents/` for user scope, `.claude/agents/` for project scope; opencode uses `~/.config/opencode/agent/` and `.opencode/agent/`). Only the `name` and `description` are kept in context — enough to decide *whether* to use each agent.
+1. **Discovery.** Claude Code loads every agent file it finds (`~/.claude/agents/` for user scope, `.claude/agents/` for project scope; opencode uses `~/.config/opencode/agents/` and `.opencode/agents/`). Only the `name` and `description` are kept in context — enough to decide *whether* to use each agent.
 2. **Selection.** When a task matches an agent's `description`, the main assistant delegates to it — either automatically ("this looks like a job for `commit-writer`") or because the user asked explicitly. This is why the `description` should read as a **trigger condition**, not a summary.
 3. **Isolation.** The agent runs in its own context window. It cannot see the main thread's messages; the caller cannot see the agent's intermediate steps. This isolation is the whole point: heavy exploration, long tool outputs, and noisy reasoning stay *out* of the main conversation.
 4. **Tools & model.** The agent is restricted to its declared tools (or inherits all if none are declared) and runs on its declared model (or the default). A read-only reviewer with `Read, Grep` behaves very differently — and far more safely — than one with `Write, Bash`.
@@ -94,17 +94,20 @@ If an agent is a colleague you delegate to, a skill is a **playbook the assistan
 
 ## Platform notes: Claude Code vs. opencode
 
-Both platforms share the same two concepts, and the `SKILL.md` format is **identical** across them (so skills are essentially portable). The differences are in agent frontmatter and install paths:
+Both platforms share the same two concepts, and the `SKILL.md` format follows the same [Agent Skills](https://agentskills.io) open standard (so skills are essentially portable — opencode even reads `.claude/skills/` directly). The differences are in agent frontmatter and install paths:
 
 | | **Claude Code** | **opencode** |
 |---|---|---|
-| Agent dir | `.claude/agents/` (plural) | `.opencode/agent/` (**singular**) |
-| Skill dir | `.claude/skills/` (plural) | `.opencode/skill/` (**singular**) |
+| Agent dir | `.claude/agents/` | `.opencode/agents/` (singular `agent/` also works) |
+| Skill dir | `.claude/skills/` | `.opencode/skills/` (singular `skill/` also works) |
 | Global scope | `~/.claude/…` | `~/.config/opencode/…` |
-| Agent `name` field | required in frontmatter | none — the **filename** is the name |
+| Agent `name` field | optional (unique id; defaults matter) | none — the **filename** is the name |
 | Agent `tools` | comma-separated allowlist string | **map of tool → boolean** |
 | Agent modes | subagents only | `primary` / `subagent` / `all` (`primary` agents are Tab-switchable) |
-| Agent model field | `sonnet` / `opus` / `haiku` / id | `provider/model`, e.g. `anthropic/claude-sonnet-5` |
+| Agent model field | `sonnet` / `opus` / `haiku` / `fable` / id / `inherit` (default `inherit`) | `provider/model`, e.g. `anthropic/claude-sonnet-5` |
+| Skill invocation | `/name` **or** model-triggered | agent-triggered via the `skill` tool (no `/slash`) |
+
+> opencode's canonical directories are **plural** (`agents/`, `skills/`); the singular forms are kept only for backwards compatibility, so this collection uses the plural everywhere.
 
 When an item ships for both platforms in this collection, we keep the same kebab-case name and mirror the behaviour, adjusting only the frontmatter to each platform's schema — see the [`commit-writer`](claude/agents/commit-writer.md) agent for a side-by-side example.
 

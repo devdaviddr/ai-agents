@@ -111,8 +111,8 @@ To use the items **outside** this repo, either copy them or symlink them globall
 ```bash
 cp    claude/agents/commit-writer.md      ~/.claude/agents/
 cp -R claude/skills/release-notes         ~/.claude/skills/
-cp    opencode/agents/commit-writer.md    ~/.config/opencode/agent/    # note: singular
-cp -R opencode/skills/release-notes       ~/.config/opencode/skill/    # note: singular
+cp    opencode/agents/commit-writer.md    ~/.config/opencode/agents/   # plural (canonical)
+cp -R opencode/skills/release-notes       ~/.config/opencode/skills/   # plural (canonical)
 ```
 
 **Or symlink the whole catalog into your user config** (updates as you `git pull`):
