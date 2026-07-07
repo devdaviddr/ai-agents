@@ -71,6 +71,11 @@ claude        # or: opencode
 <td>Skill</td>
 <td>Buckets <code>git log</code> between two refs into grouped, human-readable release notes.</td>
 </tr>
+<tr>
+<td><a href="claude/skills/azure-diagram/SKILL.md">azure-diagram</a><br><sub>Claude · <a href="opencode/skills/azure-diagram/SKILL.md">opencode</a></sub></td>
+<td>Skill</td>
+<td>Generates Azure cloud architecture diagrams as <code>.excalidraw</code> files with a consistent design system (category colours, zone containers, official Azure icons). Bundles a pure-Python generator + 22 icons.</td>
+</tr>
 </table>
 
 Per-platform guides: Claude [agents](claude/agents/README.md) · [skills](claude/skills/README.md) — opencode [agents](opencode/agents/README.md) · [skills](opencode/skills/README.md).
