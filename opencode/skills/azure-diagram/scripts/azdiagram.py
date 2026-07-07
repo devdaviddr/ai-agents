@@ -447,15 +447,26 @@ def build_scene(scene):
                        "fillStyle": "solid", "strokeColor": "#4c9aff", "strokeWidth": 2})
         if p.get("label"):
             plines = p["label"].split("\n")
-            panels.append({"type": "text", "id": f"{pid}_lbl", "x": round(x0 + 18, 1),
+            # optional chip icon; a "RESOURCE GROUP" label gets the official RG icon automatically
+            picon = p.get("icon") or ("resource-group" if "resource group" in p["label"].lower() else None)
+            lx = x0 + 18
+            if picon:
+                panels.append({"type": "image", "id": f"{pid}_pic", "iconId": picon,
+                               "x": round(x0 + 16, 1), "y": round(y0 + 14, 1),
+                               "width": 26, "height": 26})
+                lx = x0 + 50
+            panels.append({"type": "text", "id": f"{pid}_lbl", "x": round(lx, 1),
                            "y": round(y0 + 14, 1),
-                           "width": round(max(len(l) for l in plines) * 14 * 0.62, 1),
+                           "width": round(max(len(l) for l in plines) * 14 * 0.75 + 6, 1),
                            "height": len(plines) * 20, "text": p["label"],
                            "fontSize": 14, "strokeColor": "#4c9aff", "textAlign": "left"})
 
     # Edges: orthogonal connectors routed to cross NEITHER another node's icon NOR its caption.
     # Each node gets connection anchors on its block boundary: sides & top on the icon, and the
     # BOTTOM on the caption's lower edge — so an arrow never runs through text to reach an icon.
+    # When several edges share one side of a node, their anchors are SPREAD into slots (ordered
+    # by where the other endpoint lies, so fanned lines don't cross) instead of stacking on the
+    # side's centre — overlapping collinear segments were what made diagrams look disconnected.
     # Obstacle boxes span the whole block (icon + caption). Explicit points (not `elbowed`).
     h = IC / 2
     M = 16
@@ -463,15 +474,24 @@ def build_scene(scene):
     for nid, n in nodes.items():
         cx, cy = n["_cx"], n["_cy"]
         half = max(h, n["_capw"] / 2)
-        geom[nid] = {
-            "cx": cx, "cy": cy,
-            "box": (cx - half - M, cy - h - M, cx + half + M, n["_capbot"] + M),
-            "top": ((cx, cy - h), f"{nid}_ic", [0.5, 0]),         # anchor = (point, bind-id, fixedPoint)
-            "bot": ((cx, n["_capbot"]), f"{nid}_lbl", [0.5, 1]),  # below the caption text
-            "lft": ((cx - h, cy), f"{nid}_ic", [0, 0.5]),
-            "rgt": ((cx + h, cy), f"{nid}_ic", [1, 0.5]),
-        }
+        geom[nid] = {"cx": cx, "cy": cy, "capbot": n["_capbot"],
+                     "box": (cx - half - M, cy - h - M, cx + half + M, n["_capbot"] + M)}
 
+    def anchor(nid, side, off=0.0):
+        """(point, bind-element-id, is_centre). Slot offset shifts along the side."""
+        g = geom[nid]
+        cx, cy = g["cx"], g["cy"]
+        if side == "top":
+            return ((cx + off, cy - h), f"{nid}_ic", off == 0)
+        if side == "bot":
+            return ((cx + off, g["capbot"]), f"{nid}_lbl", off == 0)
+        if side == "lft":
+            return ((cx - h, cy + off), f"{nid}_ic", off == 0)
+        return ((cx + h, cy + off), f"{nid}_ic", off == 0)
+
+    # Pass 1 — classify every edge and census which (node, side) each one touches.
+    espec = []
+    usage = {}   # (nid, side) -> [(edge_index, fan_sort_key)]
     for i, e in enumerate(scene.get("edges", [])):
         sid, tid = e.get("from"), e.get("to")
         if sid not in geom or tid not in geom:
@@ -479,35 +499,68 @@ def build_scene(scene):
         if sid == tid:
             sys.exit(f"scene error: edge from {sid!r} to itself is not supported")
         gS, gT = geom[sid], geom[tid]
+        Sx, Sy, Tx, Ty = gS["cx"], gS["cy"], gT["cx"], gT["cy"]
+        dx, dy = 1 if Tx > Sx else -1, 1 if Ty > Sy else -1
+        same_row, same_col = abs(Ty - Sy) < IC * 0.5, abs(Tx - Sx) < IC * 0.5
+        if same_row:
+            s_side, t_side = ("rgt", "lft") if dx > 0 else ("lft", "rgt")
+        elif same_col:
+            s_side, t_side = ("bot", "top") if dy > 0 else ("top", "bot")
+        else:  # diagonal: leave vertically, arrive horizontally
+            s_side = "bot" if dy > 0 else "top"
+            t_side = "lft" if dx > 0 else "rgt"
+        usage.setdefault((sid, s_side), []).append((i, Tx if s_side in ("top", "bot") else Ty))
+        usage.setdefault((tid, t_side), []).append((i, Sx if t_side in ("top", "bot") else Sy))
+        espec.append((e, sid, tid, s_side, t_side, dx, dy, same_row, same_col))
+
+    slot = {}   # (edge_index, nid, side) -> offset
+    for (nid, side), lst in usage.items():
+        lst.sort(key=lambda t: t[1])
+        step = 26 if side in ("top", "bot") else 22
+        for j, (ei, _) in enumerate(lst):
+            slot[(ei, nid, side)] = (j - (len(lst) - 1) / 2) * step
+
+    # Pass 2 — route each edge through its slotted anchors.
+    for i, (e, sid, tid, s_side, t_side, dx, dy, same_row, same_col) in enumerate(espec):
+        gS, gT = geom[sid], geom[tid]
         obstacles = [g["box"] for k, g in geom.items() if k not in (sid, tid)]
 
         def clean(pts):
             return not any(_seg_hits_box(pts[j], pts[j + 1], b)
                            for j in range(len(pts) - 1) for b in obstacles)
 
-        Sx, Sy, Tx, Ty = gS["cx"], gS["cy"], gT["cx"], gT["cy"]
-        dx, dy = 1 if Tx > Sx else -1, 1 if Ty > Sy else -1
-        same_row, same_col = abs(Ty - Sy) < IC * 0.5, abs(Tx - Sx) < IC * 0.5
-        mx = (Sx + Tx) / 2
-        laneU = min(Sy, Ty) - CH * 0.5                       # clear lane above the rows involved
-        laneD = max(gS["box"][3], gT["box"][3]) + 20          # clear lane below both blocks
-        Ss, Ts = (gS["rgt"] if dx > 0 else gS["lft"]), (gT["lft"] if dx > 0 else gT["rgt"])
-        S_updown, T_updown = (gS["bot"] if dy > 0 else gS["top"]), (gT["top"] if dy > 0 else gT["bot"])
+        S = anchor(sid, s_side, slot.get((i, sid, s_side), 0))
+        T = anchor(tid, t_side, slot.get((i, tid, t_side), 0))
+        (sxp, syp), (txp, typ) = S[0], T[0]
         cands = []   # each: (points, start_anchor, end_anchor)
-        if same_row:                                                     # straight across (sides)
-            cands.append(([Ss[0], Ts[0]], Ss, Ts))
-        if same_col:                                                     # straight up/down
-            cands.append(([S_updown[0], T_updown[0]], S_updown, T_updown))
-        cands.append(([Ss[0], (mx, Sy), (mx, Ty), Ts[0]], Ss, Ts))      # Z through the column gap
-        A, B = gS["top"], gT["top"]                                      # dip UP over the rows (caption-safe)
-        cands.append(([A[0], (Sx, laneU), (Tx, laneU), B[0]], A, B))
-        A, B = gS["bot"], gT["bot"]                                      # dip DOWN below both captions
-        cands.append(([A[0], (Sx, laneD), (Tx, laneD), B[0]], A, B))
-        cands.append(([Ss[0], (Tx, Sy), T_updown[0]], Ss, T_updown))    # L: side then vertical (enter top/bottom)
-        cands.append(([S_updown[0], (Sx, Ty), Ts[0]], S_updown, Ts))    # L: vertical then side
+        if s_side in ("lft", "rgt") and t_side in ("lft", "rgt"):      # same-row class
+            if abs(syp - typ) < 1:
+                cands.append(([S[0], T[0]], S, T))                     # straight across
+            mxx = (sxp + txp) / 2
+            cands.append(([S[0], (mxx, syp), (mxx, typ), T[0]], S, T))  # Z through the column gap
+        elif s_side in ("top", "bot") and t_side in ("top", "bot"):    # same-column class
+            if abs(sxp - txp) < 1:
+                cands.append(([S[0], T[0]], S, T))                     # straight up/down
+            myy = (syp + typ) / 2
+            cands.append(([S[0], (sxp, myy), (txp, myy), T[0]], S, T))  # Z through the row gap
+        else:                                                          # diagonal class
+            cands.append(([S[0], (sxp, typ), T[0]], S, T))             # L: vertical then horizontal
+            Tv = anchor(tid, "top" if dy > 0 else "bot")
+            myy = (syp + Tv[0][1]) / 2
+            cands.append(([S[0], (sxp, myy), (Tv[0][0], myy), Tv[0]], S, Tv))  # Z through the row gap
+            Sh = anchor(sid, "rgt" if dx > 0 else "lft")
+            cands.append(([Sh[0], (Tv[0][0], Sh[0][1]), Tv[0]], Sh, Tv))       # L: horizontal then vertical
+            mxx = (gS["cx"] + gT["cx"]) / 2
+            cands.append(([Sh[0], (mxx, Sh[0][1]), (mxx, typ), T[0]], Sh, T))  # Z through the column gap
+        Stp, Ttp = anchor(sid, "top"), anchor(tid, "top")              # universal fallbacks
+        laneU = min(gS["cy"], gT["cy"]) - CH * 0.5
+        cands.append(([Stp[0], (Stp[0][0], laneU), (Ttp[0][0], laneU), Ttp[0]], Stp, Ttp))
+        Sbt, Tbt = anchor(sid, "bot"), anchor(tid, "bot")
+        laneD = max(gS["box"][3], gT["box"][3]) + 20
+        cands.append(([Sbt[0], (Sbt[0][0], laneD), (Tbt[0][0], laneD), Tbt[0]], Sbt, Tbt))
         choice = next((c for c in cands if clean(c[0])), None)
         if choice is None:
-            choice = cands[-1]
+            choice = cands[0]
             print(f"WARNING: edge {sid}->{tid} could not avoid every node block — "
                   f"widen grid spacing (cell_w/cell_h) or move a node", file=sys.stderr)
         pts, A, B = choice
@@ -515,18 +568,23 @@ def build_scene(scene):
         rel = [[round(px - x0, 1), round(py - y0, 1)] for px, py in pts]
         xs2, ys2 = [px for px, _ in pts], [py for _, py in pts]
         eid = e.get("id", f"e{i}")
-        edges.append({"type": "arrow", "id": eid, "x": round(x0, 1), "y": round(y0, 1),
-                      "width": round(max(xs2) - min(xs2), 1), "height": round(max(ys2) - min(ys2), 1),
-                      "points": rel, "endArrowhead": "arrow",
-                      "startBinding": {"elementId": A[1], "fixedPoint": A[2]},
-                      "endBinding": {"elementId": B[1], "fixedPoint": B[2]}})
+        arrow = {"type": "arrow", "id": eid, "x": round(x0, 1), "y": round(y0, 1),
+                 "width": round(max(xs2) - min(xs2), 1), "height": round(max(ys2) - min(ys2), 1),
+                 "points": rel, "endArrowhead": "arrow"}
+        # Bind only centre anchors (focus 0 aims the element's centre; a slotted anchor would
+        # drift when Excalidraw re-solves the binding, so those endpoints stay unbound/exact).
+        if A[2]:
+            arrow["startBinding"] = {"elementId": A[1], "focus": 0, "gap": 2}
+        if B[2]:
+            arrow["endBinding"] = {"elementId": B[1], "focus": 0, "gap": 2}
+        edges.append(arrow)
         if e.get("label"):
             # place the label at the midpoint of the longest segment, nudged off the line
             segs = [(pts[j], pts[j + 1]) for j in range(len(pts) - 1)]
             (p1, p2) = max(segs, key=lambda s: abs(s[1][0] - s[0][0]) + abs(s[1][1] - s[0][1]))
             lmx, lmy = (p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2
             llines = e["label"].split("\n")
-            lw = max(len(l) for l in llines) * 14 * 0.62
+            lw = max(len(l) for l in llines) * 14 * 0.75 + 6
             if p1[1] == p2[1]:  # horizontal segment: sit just above the line
                 lx, ly = lmx - lw / 2, lmy - len(llines) * 18 - 6
             else:               # vertical segment: sit just right of the line

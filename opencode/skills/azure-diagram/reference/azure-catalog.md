@@ -127,6 +127,11 @@ paths per edge and picks a clean one):
 Tips: keep the main flow on one `row` and branch with rows above/below; `grid.cell_w` /
 `cell_h` widen spacing for long captions; a node may set `"cap_w"` to widen its caption.
 An edge may carry a short `"label"` — placed beside the connector's longest segment.
+A panel may set `"icon"` for its label chip, and any panel whose label contains
+"RESOURCE GROUP" gets the official `resource-group` icon automatically — so model Azure
+resource groups as panels (`{"label": "RESOURCE GROUP\nrg-app-prod", "nodes": [...]}`).
+When several edges connect to the same side of a node, the builder spreads their anchor
+points into slots (fanned by destination) so connectors never overlap each other.
 Every `icon` must be a bundled icon id (`icons` command). The builder validates its own
 output, and prints a stderr `WARNING` naming any edge it couldn't route without crossing a
 node block — if you see one, widen `cell_w`/`cell_h` or move a node.
