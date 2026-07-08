@@ -1,0 +1,17 @@
+{
+  "episode_id": "EP-0004",
+  "_note": "SAMPLE PROPOSAL WITH A DELIBERATE ERROR (to demonstrate the eval harness): over-codes pneumonia that the note explicitly negates ('no evidence of pneumonia'). Compare with gold/EP-0004.json.",
+  "patient": { "sex": "M", "age": 71 },
+  "principal_diagnosis": {
+    "code": "DX-RESP-001",
+    "condition_onset_flag": 1,
+    "evidence_span": "Impression: infective exacerbation of COPD",
+    "scs_basis": ["SCS-0001"]
+  },
+  "additional_diagnoses": [
+    { "code": "DX-INFX-001", "condition_onset_flag": 1, "evidence_span": "intravenous antibiotics for a bacterial chest infection", "scs_basis": ["SCS-0002", "SCS-MULT-01"] },
+    { "code": "DX-RESP-010", "condition_onset_flag": 1, "evidence_span": "productive cough", "scs_basis": ["SCS-0002"] }
+  ],
+  "procedures": [],
+  "predicted_ar_drg": { "code": "S-DRG-E65B", "description": "(synthetic) MDC 04 COPD with infection, complexity B" }
+}

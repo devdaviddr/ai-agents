@@ -1,0 +1,30 @@
+{
+  "episode_id": "EP-0006",
+  "patient": { "sex": "M", "age": 68 },
+  "principal_diagnosis": {
+    "code": "DX-NEO-001",
+    "description": "Malignant neoplasm of colon",
+    "condition_onset_flag": 1,
+    "evidence_span": "Elective admission for surgical management of a malignant neoplasm of the colon",
+    "scs_basis": ["SCS-0001"]
+  },
+  "additional_diagnoses": [
+    {
+      "code": "DX-MORPH-001",
+      "condition_onset_flag": 1,
+      "evidence_span": "histology: adenocarcinoma",
+      "scs_basis": ["SCS-MORPH-01", "SCS-MULT-01"],
+      "rationale": "Morphology code assigned alongside the neoplasm site code (SCS-MORPH-01)."
+    }
+  ],
+  "procedures": [
+    { "code": "PX-GI-001", "evidence_span": "Underwent an uncomplicated right hemicolectomy" }
+  ],
+  "not_coded": [],
+  "predicted_ar_drg": { "code": "S-DRG-G02B", "description": "(synthetic) MDC 06 major digestive procedure, complexity B" },
+  "hard_cases_exercised": [
+    "Neoplasm requires a morphology code — SCS-MORPH-01 (edits WARN if missing)",
+    "Significant OR procedure raises complexity in the grouper",
+    "Morphology code is an additional, never the principal"
+  ]
+}

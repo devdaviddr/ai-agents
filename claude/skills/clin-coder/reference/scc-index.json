@@ -1,0 +1,36 @@
+{
+  "index": "Synthetic Clinical Classification (SCC) — Alphabetic Index (lead terms)",
+  "note": "FICTIONAL. Mimics how a coder navigates an alphabetic index: a lead term, then sub-terms (qualifiers), each pointing to a tabular code. Use `ccagent.py index <lead term>` to navigate; then `validate` the chosen code in the tabular list.",
+  "lead_terms": {
+    "Disease, chronic obstructive pulmonary": {
+      "with acute lower respiratory infection": "DX-RESP-001",
+      "uncomplicated": "DX-RESP-002"
+    },
+    "Infarction, myocardial": {
+      "non-ST-elevation (NSTEMI)": "DX-CARD-001"
+    },
+    "Angina": { "unstable": "DX-CARD-002" },
+    "Pain": { "chest, unspecified": "DX-SYMP-001" },
+    "Cough": { "unspecified": "DX-SYMP-002" },
+    "Pneumonia": { "community-acquired, organism unspecified": "DX-RESP-010" },
+    "Asthma": { "with acute exacerbation": "DX-RESP-005" },
+    "Diabetes, mellitus": {
+      "type 1, with ketoacidosis": "DX-ENDO-002",
+      "type 2, without complications": "DX-ENDO-001",
+      "type 2, with chronic kidney disease": "DX-ENDO-003",
+      "type 2, with diabetic nephropathy (combination)": "DX-COMB-001",
+      "with cataract (dagger)": "DX-EYE-DAG"
+    },
+    "Injury, kidney, acute": { "": "DX-RENAL-001" },
+    "Disease, kidney, chronic": { "stage 3": "DX-RENAL-002" },
+    "Hypokalaemia": { "": "DX-ELEC-001" },
+    "Infection, bacterial": { "organism unspecified": "DX-INFX-001" },
+    "Osteoarthritis": { "unspecified site": "DX-MSK-001" },
+    "Fall": { "on same level": "DX-EXT-001" },
+    "Neoplasm, malignant": { "colon": "DX-NEO-001" },
+    "Adenocarcinoma": { "no subtype (morphology)": "DX-MORPH-001" },
+    "Cataract": { "in diabetes (asterisk)": "DX-EYE-AST" },
+    "Haemorrhage, postpartum": { "": "DX-OBS-001" },
+    "Hyperplasia, prostate, benign": { "": "DX-GU-001" }
+  }
+}

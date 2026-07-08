@@ -2,35 +2,18 @@
   "standard": "Synthetic Coding Standards (SCS)",
   "note": "FICTIONAL paraphrased analogues of the kinds of rules a real coding standard contains. NOT the Australian Coding Standards (ACS), which are copyright IHACPA. Wording is invented for testing.",
   "rules": [
-    {
-      "id": "SCS-0001",
-      "title": "Principal diagnosis",
-      "text": "The principal diagnosis is the condition established after study to be chiefly responsible for occasioning the patient's episode of admitted care. Where the reason for admission is investigated and a definitive condition is found, that condition is the principal diagnosis.",
-      "applies_to": ["principal_diagnosis"]
-    },
-    {
-      "id": "SCS-0002",
-      "title": "Additional diagnoses",
-      "text": "Code an additional diagnosis only when the condition meets at least one criterion during the episode: it requires treatment; it requires diagnostic evaluation; it requires increased nursing care or monitoring; or it extends the length of stay. Conditions documented but not meeting any criterion are not coded.",
-      "applies_to": ["additional_diagnosis"]
-    },
-    {
-      "id": "SCS-SEQ-01",
-      "title": "Symptoms versus definitive diagnosis",
-      "text": "Do not assign a symptom or sign code as the principal diagnosis when a related definitive diagnosis has been established and documented for the same episode. Code the definitive diagnosis instead.",
-      "applies_to": ["principal_diagnosis", "sequencing"]
-    },
-    {
-      "id": "SCS-COF-01",
-      "title": "Condition onset flag",
-      "text": "Assign a condition onset flag to every diagnosis: flag 1 = condition present on admission; flag 2 = condition arose during the episode of admitted care (hospital-acquired).",
-      "applies_to": ["all_diagnoses"]
-    },
-    {
-      "id": "SCS-MULT-01",
-      "title": "Code also / multiple coding",
-      "text": "Where a code carries a 'code also' instruction, assign the additional code(s) named when the related condition is documented and clinically relevant to the episode.",
-      "applies_to": ["classification_instructions"]
-    }
+    { "id": "SCS-0001", "title": "Principal diagnosis", "text": "The principal diagnosis is the condition established after study to be chiefly responsible for occasioning the patient's episode of admitted care. Where the reason for admission is investigated and a definitive condition is found, that condition is the principal diagnosis.", "applies_to": ["principal_diagnosis"] },
+    { "id": "SCS-0002", "title": "Additional diagnoses", "text": "Code an additional diagnosis only when the condition meets at least one criterion during the episode: it requires treatment; requires diagnostic evaluation; requires increased nursing care or monitoring; or extends the length of stay. Conditions documented but not meeting any criterion are not coded.", "applies_to": ["additional_diagnosis"] },
+    { "id": "SCS-SEQ-01", "title": "Symptoms versus definitive diagnosis", "text": "Do not assign a symptom or sign code as the principal diagnosis when a related definitive diagnosis has been established and documented for the same episode. Code the definitive diagnosis instead.", "applies_to": ["principal_diagnosis", "sequencing"] },
+    { "id": "SCS-COF-01", "title": "Condition onset flag", "text": "Assign a condition onset flag to every diagnosis: flag 1 = condition present on admission; flag 2 = condition arose during the episode of admitted care (hospital-acquired).", "applies_to": ["all_diagnoses"] },
+    { "id": "SCS-MULT-01", "title": "Code also / multiple coding", "text": "Where a code carries a 'code also' instruction, assign the additional code(s) named when the related condition is documented and clinically relevant to the episode.", "applies_to": ["classification_instructions"] },
+    { "id": "SCS-NEG-01", "title": "Negated and ruled-out conditions", "text": "Do not code a condition that is documented as absent, negated, or ruled out (e.g. 'no evidence of', 'denies', 'ruled out'). A negated finding is not a codeable diagnosis.", "applies_to": ["concept_selection"] },
+    { "id": "SCS-HX-01", "title": "Historical conditions", "text": "Do not code a past/resolved condition documented only as history (e.g. 'history of', 'previous', 'ex-') unless it is being actively treated or investigated, or otherwise affects care, this episode.", "applies_to": ["concept_selection"] },
+    { "id": "SCS-UNC-01", "title": "Uncertain diagnoses", "text": "For an inpatient episode, a diagnosis documented at separation as 'probable', 'likely' or 'suspected' and treated as such may be coded as if established. A diagnosis merely queried and not treated is not coded; code the presenting symptom instead.", "applies_to": ["concept_selection", "principal_diagnosis"] },
+    { "id": "SCS-FAM-01", "title": "Family history", "text": "Do not code a condition attributed to a family member. Family history is coded only with a dedicated family-history code when it affects the current episode's management.", "applies_to": ["concept_selection"] },
+    { "id": "SCS-MORPH-01", "title": "Morphology of neoplasms", "text": "When coding a neoplasm, also assign the morphology code that describes the histological type.", "applies_to": ["classification_instructions"] },
+    { "id": "SCS-DAG-01", "title": "Dagger and asterisk (dual) coding", "text": "For a manifestation coded with the dagger/asterisk convention, assign the dagger (underlying condition) code first and the asterisk (manifestation) code second. An asterisk code is never a principal diagnosis.", "applies_to": ["sequencing", "classification_instructions"] },
+    { "id": "SCS-COMB-01", "title": "Combination codes", "text": "Where a single combination code fully describes two conditions (or a condition and its complication), assign the combination code instead of coding the components separately.", "applies_to": ["classification_instructions"] },
+    { "id": "SCS-EDIT-01", "title": "Validity edits", "text": "A coded episode must pass validity edits: the principal diagnosis must be an acceptable principal (not a symptom/asterisk code where a definitive code exists); sex-specific codes must match patient sex; and mutually excluded codes must not co-occur.", "applies_to": ["validation"] }
   ]
 }

@@ -1,0 +1,33 @@
+{
+  "episode_id": "EP-0004",
+  "patient": { "sex": "M", "age": 71 },
+  "principal_diagnosis": {
+    "code": "DX-RESP-001",
+    "description": "COPD with acute lower respiratory infection",
+    "condition_onset_flag": 1,
+    "evidence_span": "Impression: infective exacerbation of COPD",
+    "scs_basis": ["SCS-0001"]
+  },
+  "additional_diagnoses": [
+    {
+      "code": "DX-INFX-001",
+      "condition_onset_flag": 1,
+      "evidence_span": "intravenous antibiotics for a bacterial chest infection",
+      "scs_basis": ["SCS-0002", "SCS-MULT-01"],
+      "rationale": "Treated with IV antibiotics; 'code also' on DX-RESP-001."
+    }
+  ],
+  "procedures": [],
+  "not_coded": [
+    { "concept": "Pneumonia", "candidate_code": "DX-RESP-010", "reason": "Documented as absent ('no evidence of pneumonia').", "scs_basis": ["SCS-NEG-01"] },
+    { "concept": "Chest pain", "candidate_code": "DX-SYMP-001", "reason": "Negated ('denies chest pain').", "scs_basis": ["SCS-NEG-01"] },
+    { "concept": "Acute coronary syndrome / NSTEMI", "candidate_code": "DX-CARD-001", "reason": "Ruled out; troponin negative.", "scs_basis": ["SCS-NEG-01", "SCS-UNC-01"] },
+    { "concept": "Colon cancer", "candidate_code": "DX-NEO-001", "reason": "Family history only (father); not the patient's condition and not investigated this episode.", "scs_basis": ["SCS-FAM-01"] }
+  ],
+  "predicted_ar_drg": { "code": "S-DRG-E65B", "description": "(synthetic) MDC 04 COPD with infection, complexity B" },
+  "hard_cases_exercised": [
+    "Negated findings must not be coded (pneumonia, chest pain, ruled-out ACS) — SCS-NEG-01",
+    "Family-history condition must not be coded as the patient's — SCS-FAM-01",
+    "Classic over-coding trap: four documented-but-non-codeable concepts"
+  ]
+}

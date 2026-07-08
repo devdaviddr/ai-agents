@@ -9,7 +9,7 @@ Browse the catalog · run them straight from the repo · install them everywhere
 <br>
 
 [![Platforms](https://img.shields.io/badge/platforms-Claude%20Code%20%7C%20opencode-4c6ef5?style=flat-square)](#catalog)
-[![Catalog](https://img.shields.io/badge/catalog-3%20agents%20%C2%B7%203%20skills-2f9e44?style=flat-square)](#catalog)
+[![Catalog](https://img.shields.io/badge/catalog-4%20agents%20%C2%B7%203%20skills-2f9e44?style=flat-square)](#catalog)
 [![Docs](https://img.shields.io/badge/docs-CONCEPTS-7048e8?style=flat-square)](CONCEPTS.md)
 [![License](https://img.shields.io/badge/license-MIT-868e96?style=flat-square)](LICENSE)
 
@@ -79,17 +79,22 @@ claude        # or: opencode
 <tr>
 <td nowrap><a href="claude/skills/clin-coder/">clin‑coder</a><br><sub>Claude</sub></td>
 <td>Skill</td>
-<td>Agentic <strong>clinical coding</strong> on synthetic data: turns a patient episode into a grounded, auditable coding proposal — principal + additional diagnoses with condition-onset flags, procedures, and a predicted AR-DRG, each tied to an evidence span and a coding-standard rule. Never emits an unvalidated code; flags ambiguity for a human coder. Bundles a stdlib-only helper + a fictional code set/standards + example episodes with gold codings. <a href="claude/skills/clin-coder/">See example →</a></td>
+<td>Agentic <strong>clinical coding</strong> on synthetic data: turns a patient episode into a grounded, auditable coding proposal — principal + additional diagnoses with condition-onset flags, procedures, and a predicted AR-DRG, each tied to an evidence span and a coding-standard rule. Screens out negated/historical/family findings, enforces validity edits, never emits an unvalidated code, and ships an eval harness. Bundles a stdlib-only engine + a fictional code set/standards/index + 6 example episodes with gold codings. <a href="claude/skills/clin-coder/">See example →</a></td>
 </tr>
 <tr>
 <td nowrap><a href="claude/agents/clin-coder-concept-extractor.md">clin‑coder‑concept‑extractor</a><br><sub>Claude</sub></td>
 <td>Agent</td>
-<td>Read-only extractor of codeable clinical concepts + verbatim evidence spans from a single clinical document. Runs one-per-document in parallel; pairs with the <code>clin-coder</code> skill.</td>
+<td>Read-only extractor of codeable clinical concepts with evidence spans <strong>and clinical context</strong> (negation, temporality, certainty, family history) from a single document. Runs one-per-document in parallel; pairs with the <code>clin-coder</code> skill.</td>
 </tr>
 <tr>
 <td nowrap><a href="claude/agents/clin-coder-verifier.md">clin‑coder‑verifier</a><br><sub>Claude</sub></td>
 <td>Agent</td>
-<td>Read-only auditor of a proposed coding: confirms every code is real, evidence-grounded, and rule-justified, and flags any that aren't. Cannot modify the proposal. Pairs with the <code>clin-coder</code> skill.</td>
+<td>Read-only auditor of a proposed coding: runs the engine's validity edits + grounding checks and flags anything unvalidated, ungrounded, or rule-violating. Cannot modify the proposal. Pairs with the <code>clin-coder</code> skill.</td>
+</tr>
+<tr>
+<td nowrap><a href="claude/agents/clin-coder-cdi.md">clin‑coder‑cdi</a><br><sub>Claude</sub></td>
+<td>Agent</td>
+<td>Read-only drafter of a non-leading Clinical Documentation Improvement (CDI) query when an episode's documentation is too thin or ambiguous to code confidently. Never codes. Pairs with the <code>clin-coder</code> skill.</td>
 </tr>
 </table>
 
