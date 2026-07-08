@@ -1,0 +1,39 @@
+{
+  "episode_id": "EP-0002",
+  "principal_diagnosis": {
+    "code": "DX-CARD-001",
+    "description": "Non-ST-elevation myocardial infarction (NSTEMI)",
+    "condition_onset_flag": 1,
+    "evidence_span": "Diagnosis: non-ST-elevation myocardial infarction (NSTEMI)",
+    "scs_basis": ["SCS-0001", "SCS-SEQ-01"],
+    "rationale": "Chest pain was the presenting symptom, but a definitive diagnosis (NSTEMI) was established after study, so the symptom is not the principal diagnosis."
+  },
+  "additional_diagnoses": [
+    {
+      "code": "DX-ELEC-001",
+      "description": "Hypokalaemia",
+      "condition_onset_flag": 1,
+      "evidence_span": "Serum potassium 3.0 mmol/L on day 1; treated with intravenous potassium replacement",
+      "scs_basis": ["SCS-0002"],
+      "rationale": "Required treatment (IV potassium) this episode."
+    }
+  ],
+  "procedures": [
+    { "code": "PX-CARD-002", "description": "Coronary angiography", "evidence_span": "Underwent coronary angiography" },
+    { "code": "PX-CARD-001", "description": "Percutaneous coronary intervention, single stent", "evidence_span": "percutaneous coronary intervention with a single drug-eluting stent to the LAD" }
+  ],
+  "not_coded": [
+    {
+      "concept": "Chest pain",
+      "candidate_code": "DX-SYMP-001",
+      "reason": "Symptom superseded by the definitive diagnosis (NSTEMI). Must not be assigned as principal or additional.",
+      "scs_basis": ["SCS-SEQ-01"]
+    }
+  ],
+  "predicted_ar_drg": { "code": "S-DRG-F41A", "description": "(synthetic) Acute myocardial infarction with invasive cardiac investigation / intervention" },
+  "hard_cases_exercised": [
+    "Symptom-vs-definitive trap: chest pain (DX-SYMP-001) must NOT be principal (SCS-SEQ-01)",
+    "Procedure coding: two linked interventions (angiography + PCI)",
+    "Excludes: unstable angina (DX-CARD-002) excluded by NSTEMI"
+  ]
+}

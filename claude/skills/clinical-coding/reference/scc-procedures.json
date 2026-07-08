@@ -1,0 +1,12 @@
+{
+  "classification": "Synthetic Clinical Classification (SCC) — Interventions",
+  "note": "FICTIONAL. Not ACHI. Invented for testing only.",
+  "codes": [
+    { "code": "PX-CARD-001", "description": "Percutaneous coronary intervention, single stent", "block": "Cardiovascular procedures" },
+    { "code": "PX-CARD-002", "description": "Coronary angiography", "block": "Cardiovascular procedures" },
+    { "code": "PX-RESP-001", "description": "Non-invasive ventilation, initiation and management", "block": "Respiratory support" },
+    { "code": "PX-RENAL-001", "description": "Haemodialysis, single session", "block": "Renal procedures" },
+    { "code": "PX-ENDO-001", "description": "Continuous intravenous insulin infusion", "block": "Endocrine management" },
+    { "code": "PX-IMG-001", "description": "Computed tomography of chest", "block": "Diagnostic imaging" }
+  ]
+}

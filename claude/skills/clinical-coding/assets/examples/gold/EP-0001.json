@@ -1,0 +1,49 @@
+{
+  "episode_id": "EP-0001",
+  "principal_diagnosis": {
+    "code": "DX-RESP-001",
+    "description": "COPD with acute lower respiratory infection",
+    "condition_onset_flag": 1,
+    "evidence_span": "Impression: infective exacerbation of COPD",
+    "scs_basis": ["SCS-0001"]
+  },
+  "additional_diagnoses": [
+    {
+      "code": "DX-INFX-001",
+      "description": "Bacterial infection due to unspecified organism",
+      "condition_onset_flag": 1,
+      "evidence_span": "intravenous antibiotics for a presumed bacterial chest infection (no organism isolated)",
+      "scs_basis": ["SCS-0002", "SCS-MULT-01"],
+      "rationale": "Required treatment (IV antibiotics); added under the 'code also' instruction on DX-RESP-001."
+    },
+    {
+      "code": "DX-ENDO-001",
+      "description": "Type 2 diabetes mellitus without complications",
+      "condition_onset_flag": 1,
+      "evidence_span": "managed on a sliding-scale (subcutaneous) insulin regimen with endocrine input",
+      "scs_basis": ["SCS-0002"],
+      "rationale": "Meets additional-diagnosis criteria: required active management (insulin) and monitoring this episode."
+    }
+  ],
+  "procedures": [
+    {
+      "code": "PX-RESP-001",
+      "description": "Non-invasive ventilation, initiation and management",
+      "evidence_span": "Required non-invasive ventilation (NIV) overnight on day 1"
+    }
+  ],
+  "not_coded": [
+    {
+      "concept": "Osteoarthritis of knees",
+      "candidate_code": "DX-MSK-001",
+      "reason": "Documented in background but had no treatment, evaluation, monitoring or LOS impact this episode.",
+      "scs_basis": ["SCS-0002"]
+    }
+  ],
+  "predicted_ar_drg": { "code": "S-DRG-E65A", "description": "(synthetic) COPD with catastrophic complication" },
+  "hard_cases_exercised": [
+    "Additional dx that MEETS SCS-0002 (diabetes) vs one that FAILS it (osteoarthritis distractor)",
+    "'code also' instruction (infection) fired from the principal dx",
+    "Excludes: asthma (DX-RESP-005) must not be chosen over COPD exacerbation"
+  ]
+}

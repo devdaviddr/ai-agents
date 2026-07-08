@@ -1,0 +1,38 @@
+{
+  "episode_id": "EP-0003",
+  "principal_diagnosis": {
+    "code": "DX-ENDO-002",
+    "description": "Type 1 diabetes mellitus with ketoacidosis",
+    "condition_onset_flag": 1,
+    "evidence_span": "Diagnosis: diabetic ketoacidosis (DKA)",
+    "scs_basis": ["SCS-0001"]
+  },
+  "additional_diagnoses": [
+    {
+      "code": "DX-RENAL-001",
+      "description": "Acute kidney injury",
+      "condition_onset_flag": 2,
+      "evidence_span": "the creatinine rose from a normal baseline to 180 µmol/L, consistent with acute kidney injury secondary to dehydration — this developed after admission",
+      "scs_basis": ["SCS-0002", "SCS-COF-01", "SCS-MULT-01"],
+      "rationale": "Arose during the episode (condition onset flag 2); required monitoring and treatment (rehydration). Added under the 'code also' instruction on DX-ENDO-002."
+    },
+    {
+      "code": "DX-ELEC-001",
+      "description": "Hypokalaemia",
+      "condition_onset_flag": 2,
+      "evidence_span": "Potassium fell to 2.9 mmol/L during insulin therapy and was replaced intravenously",
+      "scs_basis": ["SCS-0002", "SCS-COF-01"],
+      "rationale": "Hospital-acquired during insulin therapy (flag 2); required IV replacement and monitoring."
+    }
+  ],
+  "procedures": [
+    { "code": "PX-ENDO-001", "description": "Continuous intravenous insulin infusion", "evidence_span": "a fixed-rate intravenous insulin infusion" }
+  ],
+  "not_coded": [],
+  "predicted_ar_drg": { "code": "S-DRG-K60A", "description": "(synthetic) Diabetes with catastrophic or severe complication" },
+  "hard_cases_exercised": [
+    "Condition onset flag 2 (hospital-acquired AKI and hypokalaemia) vs flag 1 (DKA present on admission)",
+    "'code also' chain from DX-ENDO-002 to AKI and hypokalaemia",
+    "Multiple additional diagnoses each independently meeting SCS-0002"
+  ]
+}
