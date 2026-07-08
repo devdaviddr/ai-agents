@@ -1,4 +1,4 @@
-# clinical-coding
+# clin-coder
 
 Agentic **clinical coding** on synthetic data. Give it a patient episode (discharge summary, op notes,
 pathology, progress notes) and it proposes the codes — **principal + additional diagnoses with
@@ -13,7 +13,7 @@ and *the coding-standard rule* behind it, for a human coder to review.
 
 In Claude Code with this skill installed:
 
-> **"/clinical-coding — code the example episode EP-0002."**
+> **"/clin-coder — code the example episode EP-0002."**
 
 Other prompts that trigger it:
 
@@ -52,8 +52,8 @@ flowchart TD
 
 ## Companion subagents
 
-Ships with two optional read-only subagents in this collection: **`concept-extractor`** (parallel,
-per-document concept extraction) and **`coding-verifier`** (an auditor that can't modify the proposal).
+Ships with two optional read-only subagents in this collection: **`clin-coder-concept-extractor`** (parallel,
+per-document concept extraction) and **`clin-coder-verifier`** (an auditor that can't modify the proposal).
 The skill uses them if present and does the work inline otherwise.
 
 ## Install

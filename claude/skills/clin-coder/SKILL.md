@@ -1,10 +1,10 @@
 ---
-name: clinical-coding
-description: Propose clinical codes for a patient episode against a bundled synthetic code set and coding standards — principal + additional diagnoses with condition-onset flags, procedures, and a predicted AR-DRG, each grounded to an evidence span in the note and a rule citation. Never emits an unvalidated code; flags ambiguity for a human coder instead of guessing. Use when asked to code an episode, discharge summary, or clinical note. Trigger on "/clinical-coding" or "code this episode".
+name: clin-coder
+description: Propose clinical codes for a patient episode against a bundled synthetic code set and coding standards — principal + additional diagnoses with condition-onset flags, procedures, and a predicted AR-DRG, each grounded to an evidence span in the note and a rule citation. Never emits an unvalidated code; flags ambiguity for a human coder instead of guessing. Use when asked to code an episode, discharge summary, or clinical note. Trigger on "/clin-coder" or "code this episode".
 allowed-tools: Read, Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*)
 ---
 
-# clinical-coding — agentic clinical coding on synthetic data
+# clin-coder — agentic clinical coding on synthetic data
 
 Turn a patient's episode documentation into an **auditable coding proposal**: principal diagnosis,
 additional diagnoses (with condition-onset flags), procedures, and a predicted group — every code tied
@@ -34,7 +34,7 @@ deterministic*. Never emit a code the script hasn't validated.
 
 2. **Load the standards.** `ccagent.py catalog`, and read `reference/scs-rules.json` for the rule text.
    Assign each documented condition/procedure to the standards you'll apply.
-   (For a long or multi-document episode, delegate concept extraction to the **`concept-extractor`**
+   (For a long or multi-document episode, delegate concept extraction to the **`clin-coder-concept-extractor`**
    subagent — one per document, in parallel — and collect the concepts + evidence spans it returns.)
 
 3. **Map concepts to candidate codes.** For each clinical concept, `ccagent.py lookup "<term>"` to get
@@ -57,7 +57,7 @@ deterministic*. Never emit a code the script hasn't validated.
    `ccagent.py group --from /tmp/proposal.json` for the predicted (synthetic) AR-DRG.
 
 7. **Verify.** `ccagent.py verify --from /tmp/proposal.json` — confirms every code is real and carries an
-   evidence span + rule citation. (For an independent audit, delegate to the **`coding-verifier`**
+   evidence span + rule citation. (For an independent audit, delegate to the **`clin-coder-verifier`**
    subagent — a read-only reviewer that cannot alter the proposal.) Drop anything that fails; **flag**
    low-confidence or contradictory items as coder queries rather than guessing.
 
@@ -93,7 +93,7 @@ deterministic*. Never emit a code the script hasn't validated.
 
 ## Companion subagents (optional, in this collection)
 
-- **`concept-extractor`** — read-only, one per document, parallel: extracts concepts + evidence spans.
-- **`coding-verifier`** — read-only auditor that runs `ccagent.py verify` and cannot modify the proposal.
+- **`clin-coder-concept-extractor`** — read-only, one per document, parallel: extracts concepts + evidence spans.
+- **`clin-coder-verifier`** — read-only auditor that runs `ccagent.py verify` and cannot modify the proposal.
 
 They compose with this skill; if not installed, do steps 2 and 7 inline.

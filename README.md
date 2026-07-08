@@ -77,19 +77,19 @@ claude        # or: opencode
 <td>Generates editable, dark-theme Azure architecture diagrams as <code>.excalidraw</code> files — official Azure icons as nodes, resource-group containers, and auto-routed connectors that dodge other icons and stay snapped to nodes. Describe the architecture in one line. Bundles a pure-Python generator + the full official Azure icon set (647 icons). <a href="claude/skills/azure-diagram/">See example →</a></td>
 </tr>
 <tr>
-<td nowrap><a href="claude/skills/clinical-coding/">clinical‑coding</a><br><sub>Claude</sub></td>
+<td nowrap><a href="claude/skills/clin-coder/">clin‑coder</a><br><sub>Claude</sub></td>
 <td>Skill</td>
-<td>Agentic <strong>clinical coding</strong> on synthetic data: turns a patient episode into a grounded, auditable coding proposal — principal + additional diagnoses with condition-onset flags, procedures, and a predicted AR-DRG, each tied to an evidence span and a coding-standard rule. Never emits an unvalidated code; flags ambiguity for a human coder. Bundles a stdlib-only helper + a fictional code set/standards + example episodes with gold codings. <a href="claude/skills/clinical-coding/">See example →</a></td>
+<td>Agentic <strong>clinical coding</strong> on synthetic data: turns a patient episode into a grounded, auditable coding proposal — principal + additional diagnoses with condition-onset flags, procedures, and a predicted AR-DRG, each tied to an evidence span and a coding-standard rule. Never emits an unvalidated code; flags ambiguity for a human coder. Bundles a stdlib-only helper + a fictional code set/standards + example episodes with gold codings. <a href="claude/skills/clin-coder/">See example →</a></td>
 </tr>
 <tr>
-<td nowrap><a href="claude/agents/concept-extractor.md">concept‑extractor</a><br><sub>Claude</sub></td>
+<td nowrap><a href="claude/agents/clin-coder-concept-extractor.md">clin‑coder‑concept‑extractor</a><br><sub>Claude</sub></td>
 <td>Agent</td>
-<td>Read-only extractor of codeable clinical concepts + verbatim evidence spans from a single clinical document. Runs one-per-document in parallel; pairs with the <code>clinical-coding</code> skill.</td>
+<td>Read-only extractor of codeable clinical concepts + verbatim evidence spans from a single clinical document. Runs one-per-document in parallel; pairs with the <code>clin-coder</code> skill.</td>
 </tr>
 <tr>
-<td nowrap><a href="claude/agents/coding-verifier.md">coding‑verifier</a><br><sub>Claude</sub></td>
+<td nowrap><a href="claude/agents/clin-coder-verifier.md">clin‑coder‑verifier</a><br><sub>Claude</sub></td>
 <td>Agent</td>
-<td>Read-only auditor of a proposed coding: confirms every code is real, evidence-grounded, and rule-justified, and flags any that aren't. Cannot modify the proposal. Pairs with the <code>clinical-coding</code> skill.</td>
+<td>Read-only auditor of a proposed coding: confirms every code is real, evidence-grounded, and rule-justified, and flags any that aren't. Cannot modify the proposal. Pairs with the <code>clin-coder</code> skill.</td>
 </tr>
 </table>
 

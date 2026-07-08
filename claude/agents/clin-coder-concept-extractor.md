@@ -1,6 +1,6 @@
 ---
-name: concept-extractor
-description: Use when extracting codeable clinical concepts (diagnoses, procedures, findings) with exact evidence spans from a single clinical document — e.g. one discharge summary, operation note, or pathology report. Returns structured concepts only; it does not assign codes. Ideal to run one per document, in parallel, for the clinical-coding skill.
+name: clin-coder-concept-extractor
+description: Use when extracting codeable clinical concepts (diagnoses, procedures, findings) with exact evidence spans from a single clinical document — e.g. one discharge summary, operation note, or pathology report. Returns structured concepts only; it does not assign codes. Ideal to run one per document, in parallel, for the clin-coder skill.
 tools: Read
 model: sonnet
 ---
