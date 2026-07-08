@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ccagent.py — deterministic helper for the clinical-coding skill (stdlib only).
+"""ccagent.py — deterministic helper for the clin-coder skill (stdlib only).
 
 Tools over a SYNTHETIC code set + coding standards. EVERYTHING HERE IS FICTIONAL:
 the codes are a made-up Synthetic Clinical Classification (SCC) and the rules a made-up
