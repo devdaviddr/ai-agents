@@ -30,7 +30,7 @@
       "scs_basis": ["SCS-SEQ-01"]
     }
   ],
-  "predicted_ar_drg": { "code": "S-DRG-F41A", "description": "(synthetic) Acute myocardial infarction with invasive cardiac investigation / intervention" },
+  "predicted_ar_drg": { "code": "S-DRG-F41B", "description": "(synthetic) MDC 05 acute myocardial infarction with intervention, complexity B" },
   "hard_cases_exercised": [
     "Symptom-vs-definitive trap: chest pain (DX-SYMP-001) must NOT be principal (SCS-SEQ-01)",
     "Procedure coding: two linked interventions (angiography + PCI)",

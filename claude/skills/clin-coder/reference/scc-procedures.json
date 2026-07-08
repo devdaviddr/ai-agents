@@ -1,12 +1,14 @@
 {
   "classification": "Synthetic Clinical Classification (SCC) — Interventions",
-  "note": "FICTIONAL. Not ACHI. Invented for testing only.",
+  "note": "FICTIONAL. Not ACHI. Invented for testing only. 'or_procedure': true marks a significant/operating-room procedure that raises episode complexity in the mock grouper.",
   "codes": [
-    { "code": "PX-CARD-001", "description": "Percutaneous coronary intervention, single stent", "block": "Cardiovascular procedures" },
-    { "code": "PX-CARD-002", "description": "Coronary angiography", "block": "Cardiovascular procedures" },
-    { "code": "PX-RESP-001", "description": "Non-invasive ventilation, initiation and management", "block": "Respiratory support" },
-    { "code": "PX-RENAL-001", "description": "Haemodialysis, single session", "block": "Renal procedures" },
-    { "code": "PX-ENDO-001", "description": "Continuous intravenous insulin infusion", "block": "Endocrine management" },
-    { "code": "PX-IMG-001", "description": "Computed tomography of chest", "block": "Diagnostic imaging" }
+    { "code": "PX-CARD-001", "description": "Percutaneous coronary intervention, single stent", "block": "Cardiovascular procedures", "or_procedure": true },
+    { "code": "PX-CARD-002", "description": "Coronary angiography", "block": "Cardiovascular procedures", "or_procedure": false },
+    { "code": "PX-RESP-001", "description": "Non-invasive ventilation, initiation and management", "block": "Respiratory support", "or_procedure": true },
+    { "code": "PX-RENAL-001", "description": "Haemodialysis, single session", "block": "Renal procedures", "or_procedure": true },
+    { "code": "PX-ENDO-001", "description": "Continuous intravenous insulin infusion", "block": "Endocrine management", "or_procedure": false },
+    { "code": "PX-IMG-001", "description": "Computed tomography of chest", "block": "Diagnostic imaging", "or_procedure": false },
+    { "code": "PX-GI-001", "description": "Right hemicolectomy", "block": "Digestive procedures", "or_procedure": true },
+    { "code": "PX-GI-002", "description": "Colonoscopy with biopsy", "block": "Digestive procedures", "or_procedure": false }
   ]
 }

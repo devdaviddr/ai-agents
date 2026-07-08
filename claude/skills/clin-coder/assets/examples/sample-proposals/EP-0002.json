@@ -1,0 +1,19 @@
+{
+  "episode_id": "EP-0002",
+  "_note": "SAMPLE PROPOSAL WITH DELIBERATE ERRORS (to demonstrate the eval harness): over-codes the chest-pain symptom that should have been withheld, and drops the hypokalaemia. Compare with gold/EP-0002.json.",
+  "patient": { "sex": "F", "age": 59 },
+  "principal_diagnosis": {
+    "code": "DX-CARD-001",
+    "condition_onset_flag": 1,
+    "evidence_span": "Diagnosis: non-ST-elevation myocardial infarction (NSTEMI)",
+    "scs_basis": ["SCS-0001", "SCS-SEQ-01"]
+  },
+  "additional_diagnoses": [
+    { "code": "DX-SYMP-001", "condition_onset_flag": 1, "evidence_span": "central chest pain", "scs_basis": ["SCS-0002"] }
+  ],
+  "procedures": [
+    { "code": "PX-CARD-002", "evidence_span": "Underwent coronary angiography" },
+    { "code": "PX-CARD-001", "evidence_span": "percutaneous coronary intervention with a single drug-eluting stent" }
+  ],
+  "predicted_ar_drg": { "code": "S-DRG-F41B", "description": "(synthetic) MDC 05 AMI with intervention, complexity B" }
+}

@@ -1,0 +1,30 @@
+{
+  "episode_id": "EP-0005",
+  "patient": { "sex": "F", "age": 63 },
+  "principal_diagnosis": {
+    "code": "DX-RESP-010",
+    "description": "Community-acquired pneumonia, organism unspecified",
+    "condition_onset_flag": 1,
+    "evidence_span": "probable community-acquired pneumonia — treated as such with a full course of intravenous then oral antibiotics",
+    "scs_basis": ["SCS-0001", "SCS-UNC-01"],
+    "rationale": "Documented as 'probable' at separation but treated as pneumonia, so coded as established (SCS-UNC-01)."
+  },
+  "additional_diagnoses": [
+    {
+      "code": "DX-INFX-001",
+      "condition_onset_flag": 1,
+      "evidence_span": "No organism isolated (bacterial chest infection)",
+      "scs_basis": ["SCS-0002", "SCS-MULT-01"],
+      "rationale": "Treated with antibiotics; 'code also' on DX-RESP-010."
+    }
+  ],
+  "procedures": [],
+  "not_coded": [
+    { "concept": "Urinary tract infection", "candidate_code": "DX-INFX-001", "reason": "Only queried, culture negative, not treated — an uncertain diagnosis that was not treated is not coded.", "scs_basis": ["SCS-UNC-01"] }
+  ],
+  "predicted_ar_drg": { "code": "S-DRG-E62B", "description": "(synthetic) MDC 04 respiratory infection, complexity B" },
+  "hard_cases_exercised": [
+    "Uncertain-but-TREATED diagnosis coded as established — SCS-UNC-01 (contrast with EP-0004 negation)",
+    "Queried-but-untreated condition (UTI) NOT coded — SCS-UNC-01"
+  ]
+}

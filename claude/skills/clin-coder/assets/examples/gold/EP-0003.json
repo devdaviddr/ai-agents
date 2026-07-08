@@ -29,7 +29,7 @@
     { "code": "PX-ENDO-001", "description": "Continuous intravenous insulin infusion", "evidence_span": "a fixed-rate intravenous insulin infusion" }
   ],
   "not_coded": [],
-  "predicted_ar_drg": { "code": "S-DRG-K60A", "description": "(synthetic) Diabetes with catastrophic or severe complication" },
+  "predicted_ar_drg": { "code": "S-DRG-K60B", "description": "(synthetic) MDC 10 diabetes with complication, complexity B" },
   "hard_cases_exercised": [
     "Condition onset flag 2 (hospital-acquired AKI and hypokalaemia) vs flag 1 (DKA present on admission)",
     "'code also' chain from DX-ENDO-002 to AKI and hypokalaemia",
