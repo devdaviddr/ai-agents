@@ -57,7 +57,8 @@ Claude Code auto-discovers any `*.md` in `.claude/agents/`. Project agents overr
 | Agent | Description |
 |-------|-------------|
 | [commit-writer](commit-writer.md) | Reviews the staged diff and writes a Conventional Commits message. Read + Bash only; never commits unless asked. |
-| [clin-coder-concept-extractor](clin-coder-concept-extractor.md) | Read-only extractor of codeable clinical concepts + verbatim evidence spans from a single clinical document. Runs one-per-document in parallel; pairs with the `clin-coder` skill. |
-| [clin-coder-verifier](clin-coder-verifier.md) | Read-only auditor of a proposed clinical coding — confirms every code is real, grounded, and rule-justified, and flags any that aren't. Cannot modify the proposal. Pairs with the `clin-coder` skill. |
+| [clin-coder-concept-extractor](clin-coder-concept-extractor.md) | Read-only extractor of codeable clinical concepts with evidence spans **and clinical context** (negation, temporality, certainty, family history) from a single document. Runs one-per-document in parallel; pairs with the `clin-coder` skill. |
+| [clin-coder-verifier](clin-coder-verifier.md) | Read-only auditor of a proposed clinical coding — runs the engine's validity edits + grounding checks and flags anything unvalidated, ungrounded, or rule-violating. Cannot modify the proposal. Pairs with the `clin-coder` skill. |
+| [clin-coder-cdi](clin-coder-cdi.md) | Read-only drafter of a non-leading Clinical Documentation Improvement (CDI) query when an episode's documentation is too thin/ambiguous to code confidently. Never codes. Pairs with the `clin-coder` skill. |
 
 To add one, follow [CONTRIBUTING.md](../../CONTRIBUTING.md) and add a row here **and** in the [main README](../../README.md).
