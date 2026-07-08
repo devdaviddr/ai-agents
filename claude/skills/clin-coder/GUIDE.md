@@ -10,6 +10,26 @@ outputs. Everything runs on the bundled **synthetic** data.
 > Synthetic and advisory only. Codes/standards are fictional (SCC/SCS — not ICD-10-AM/ACHI/ACS). Output is
 > a proposal for a qualified human coder, never automated billing/funding.
 
+## What is clinical coding — and what does this achieve?
+
+**Clinical coding** is the work of reading a completed hospital admission (the "episode": discharge
+summary, operation notes, pathology, progress notes) and translating it into a standardised set of
+**diagnosis and procedure codes**. A trained coder picks the **principal diagnosis** (the condition
+chiefly responsible for the admission), the **additional diagnoses** (comorbidities and complications
+that affected care), and the **procedures**, following a national rulebook (in Australia: ICD-10-AM,
+ACHI and the Australian Coding Standards). Those codes are grouped into a funding class (an **AR-DRG**)
+that largely determines how the hospital is paid, and they also drive casemix, epidemiology, and
+safety reporting. It is skilled, high-volume, backlog-prone work, and errors cost real money — miss a
+complication and the hospital is under-funded; code something that isn't there and it's a compliance
+risk.
+
+**What this skill achieves:** it does the coder's *first pass* automatically and safely. It reads the
+episode, decides which conditions are genuinely codeable, applies the sequencing rules, groups the
+result, and hands back a proposal where **every code is tied to a sentence in the note and the rule
+that justifies it** — so a human coder can review, correct, and sign off far faster, with a full audit
+trail. Crucially it **never invents a code**, and it **flags uncertainty instead of guessing**. Each
+example below maps to a real part of a coder's job.
+
 ## Install (once)
 
 ```bash
@@ -26,6 +46,12 @@ The three pieces:
 ---
 
 ## Example 1 — Skill: code an episode (negation + family-history traps)
+
+> **Clinical coding concept — code only what the patient actually has, this episode.** A large part of a
+> coder's skill is *restraint*: a record mentions many things that must **not** be coded — conditions ruled
+> out, past history no longer treated, or a relative's illness. Coding those is the commonest form of
+> over-coding and a compliance risk. **Achieved here:** the skill screens the note's context and withholds
+> every negated / historical / family-history mention, with the rule cited.
 
 **Input** (in Claude Code, with an example episode that documents things it then *rules out*):
 
@@ -74,6 +100,13 @@ The payoff: four documented-but-non-codeable concepts are correctly **left out**
 
 ## Example 2 — Skill: symptom vs definitive diagnosis
 
+> **Clinical coding concept — choosing and sequencing the principal diagnosis.** The principal diagnosis
+> is "the condition established after study to be chiefly responsible for the episode", and it is the
+> single biggest driver of the DRG and the funding. A patient often *presents* with a symptom but is
+> *found* to have a diagnosis; the coder must sequence the diagnosis as principal, not the symptom.
+> **Achieved here:** the skill selects the definitive diagnosis as principal and withholds the symptom
+> under the symptoms-vs-diagnosis rule.
+
 **Input:**
 
 ```
@@ -98,6 +131,12 @@ withheld under SCS-SEQ-01:
 ---
 
 ## Example 3 — Agent `clin-coder-concept-extractor`
+
+> **Clinical coding concept — abstraction.** Before any code is assigned, a coder *abstracts* the record:
+> reading every document and pulling out the clinically significant conditions and procedures. The hard
+> part isn't spotting a diagnosis — it's capturing the **context** (is it current? confirmed? the
+> patient's? treated?) that decides whether it can be coded at all. **Achieved here:** a read-only agent
+> extracts each concept with its evidence span and context flags, one document at a time (parallelisable).
 
 Use one per document to pull concepts **with clinical context** (what makes downstream withholding possible).
 
@@ -128,6 +167,12 @@ Only the COPD concept is `confirmed / patient / current` — the rest carry flag
 ---
 
 ## Example 4 — Agent `clin-coder-verifier`
+
+> **Clinical coding concept — coding audit.** Coded episodes are audited for accuracy and compliance, to
+> catch both **under-coding** (lost funding) and **over-coding / DRG creep** (a compliance risk). A good
+> audit is independent and can't quietly change the numbers it's checking. **Achieved here:** a read-only
+> auditor runs the validity + grounding checks *and* reasons about clinical correctness, rejecting codes
+> that are wrong even when they're technically well-formed — and it can never alter the proposal.
 
 Audits a proposal before a coder sees it. It runs the engine's deterministic checks **and** reasons about
 whether each code is clinically justified.
@@ -169,6 +214,12 @@ Running the score confirms it: `check` reports **withholding 3/4** and precision
 
 ## Example 5 — Agent `clin-coder-cdi`
 
+> **Clinical coding concept — Clinical Documentation Improvement (CDI).** You can only code what's
+> documented. When the record *implies* a condition (a treatment given, an abnormal result) but never
+> states it, the coder or a CDI specialist raises a **query** to the treating clinician — which must be
+> **non-leading** (it can't steer toward a higher-paying diagnosis). **Achieved here:** the agent detects
+> the documentation gap and drafts a compliant, neutral query with balanced options.
+
 When the record implies a condition but doesn't document it, draft a **non-leading** clarification query.
 
 **Input:**
@@ -199,6 +250,12 @@ higher-complexity code.
 ---
 
 ## Example 6 — the engine directly (deterministic tools)
+
+> **Clinical coding concept — the coder's reference tools + coding quality.** A coder constantly reaches
+> for the alphabetic index (to find a code), the tabular list (to validate it), the edits that reject
+> invalid combinations, and — at the service level — audits that *measure* coding accuracy. **Achieved
+> here:** the same functions as callable commands, plus an evaluation harness that scores a coding against
+> a gold standard (precision/recall, principal-dx accuracy, DRG match, and over-coding via withholding).
 
 You can drive the bundled engine yourself. Real outputs:
 
