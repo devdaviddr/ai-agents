@@ -72,5 +72,6 @@ Reach for a **skill** when you want to teach a procedure; reach for an **[agent]
 |-------|-------------|
 | [release-notes](release-notes/SKILL.md) | Buckets `git log` between two refs into grouped, human-readable release notes. |
 | [azure-diagram](azure-diagram/) | Generates **editable, dark-theme** Azure architecture diagrams as `.excalidraw` files — official Azure icons as nodes, resource-group containers, connectors that auto-route around icons and stay snapped. Bundled Python generator + the full official Azure icon set (647) + design-system catalog. Optional MCP live-render. [Example →](azure-diagram/README.md) |
+| [clinical-coding](clinical-coding/) | Agentic **clinical coding** on synthetic data — turns a patient episode into a grounded, auditable coding proposal (principal + additional diagnoses with condition-onset flags, procedures, predicted AR-DRG), each tied to an evidence span and a coding-standard rule. Never emits an unvalidated code. Bundles a stdlib-only helper + fictional code set/standards + example episodes with gold codings. [Example →](clinical-coding/README.md) |
 
 To add one, follow [CONTRIBUTING.md](../../CONTRIBUTING.md) and add a row here **and** in the [main README](../../README.md).
