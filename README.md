@@ -59,42 +59,61 @@ claude        # or: opencode
 
 ## Catalog
 
+Items are grouped by domain. A **suite** is a skill plus its companion agents — shown with the skill first
+and its agents indented (`└`). Each item's platform support (Claude / opencode) is noted under its name.
+
+### 🩺 Clinical coding
+
+> The **`clin-coder` suite** — a skill that codes a patient episode, with read-only companion agents. Synthetic data, advisory / coder-in-the-loop only.
+
 <table>
-<tr><th align="left">Item</th><th align="left">Type</th><th align="left">Description</th></tr>
+<tr><th align="left">Item</th><th align="left">Type</th><th align="left">Role</th></tr>
 <tr>
-<td nowrap><a href="claude/agents/commit-writer.md">commit‑writer</a><br><sub>Claude&nbsp;·&nbsp;<a href="opencode/agents/commit-writer.md">opencode</a></sub></td>
-<td>Agent</td>
-<td>Reviews the staged diff and writes a clean Conventional Commits message. Limited to <code>Read</code> + <code>Bash</code> (no write/edit); never commits unless asked.</td>
+<td nowrap><a href="claude/skills/clin-coder/"><strong>clin‑coder</strong></a><br><sub>Claude</sub></td>
+<td>Skill</td>
+<td>Codes an episode into a grounded, auditable proposal — principal + additional diagnoses (with onset flags), procedures, and a predicted AR-DRG, each tied to an evidence span and a rule. Screens out negated/historical/family findings, validates every code, and ships an eval harness. <a href="claude/skills/clin-coder/">Example →</a> · <a href="claude/skills/clin-coder/GUIDE.md">Guide →</a></td>
 </tr>
 <tr>
-<td nowrap><a href="claude/skills/release-notes/SKILL.md">release‑notes</a><br><sub>Claude&nbsp;·&nbsp;<a href="opencode/skills/release-notes/SKILL.md">opencode</a></sub></td>
+<td nowrap>└&nbsp;<a href="claude/agents/clin-coder-concept-extractor.md">clin‑coder‑concept‑extractor</a><br><sub>Claude</sub></td>
+<td>Agent</td>
+<td>Read-only, per-document extraction of codeable concepts + evidence spans <strong>and clinical context</strong> (negation, temporality, certainty, family history). Parallelisable.</td>
+</tr>
+<tr>
+<td nowrap>└&nbsp;<a href="claude/agents/clin-coder-verifier.md">clin‑coder‑verifier</a><br><sub>Claude</sub></td>
+<td>Agent</td>
+<td>Read-only auditor — runs the engine's validity edits + grounding checks and flags anything unvalidated, ungrounded, or rule-violating. Cannot modify the proposal.</td>
+</tr>
+<tr>
+<td nowrap>└&nbsp;<a href="claude/agents/clin-coder-cdi.md">clin‑coder‑cdi</a><br><sub>Claude</sub></td>
+<td>Agent</td>
+<td>Read-only drafter of a non-leading Clinical Documentation Improvement (CDI) query when documentation is too thin to code confidently. Never codes.</td>
+</tr>
+</table>
+
+### 🛠️ Dev workflow
+
+<table>
+<tr><th align="left">Item</th><th align="left">Type</th><th align="left">Role</th></tr>
+<tr>
+<td nowrap><a href="claude/agents/commit-writer.md"><strong>commit‑writer</strong></a><br><sub>Claude&nbsp;·&nbsp;<a href="opencode/agents/commit-writer.md">opencode</a></sub></td>
+<td>Agent</td>
+<td>Reviews the staged diff and writes a clean Conventional Commits message. <code>Read</code> + <code>Bash</code> only; never commits unless asked.</td>
+</tr>
+<tr>
+<td nowrap><a href="claude/skills/release-notes/SKILL.md"><strong>release‑notes</strong></a><br><sub>Claude&nbsp;·&nbsp;<a href="opencode/skills/release-notes/SKILL.md">opencode</a></sub></td>
 <td>Skill</td>
 <td>Buckets <code>git log</code> between two refs into grouped, human-readable release notes.</td>
 </tr>
+</table>
+
+### 🎨 Diagrams
+
+<table>
+<tr><th align="left">Item</th><th align="left">Type</th><th align="left">Role</th></tr>
 <tr>
-<td nowrap><a href="claude/skills/azure-diagram/">azure‑diagram</a><br><sub>Claude&nbsp;·&nbsp;<a href="opencode/skills/azure-diagram/">opencode</a></sub></td>
+<td nowrap><a href="claude/skills/azure-diagram/"><strong>azure‑diagram</strong></a><br><sub>Claude&nbsp;·&nbsp;<a href="opencode/skills/azure-diagram/">opencode</a></sub></td>
 <td>Skill</td>
-<td>Generates editable, dark-theme Azure architecture diagrams as <code>.excalidraw</code> files — official Azure icons as nodes, resource-group containers, and auto-routed connectors that dodge other icons and stay snapped to nodes. Describe the architecture in one line. Bundles a pure-Python generator + the full official Azure icon set (647 icons). <a href="claude/skills/azure-diagram/">See example →</a></td>
-</tr>
-<tr>
-<td nowrap><a href="claude/skills/clin-coder/">clin‑coder</a><br><sub>Claude</sub></td>
-<td>Skill</td>
-<td>Agentic <strong>clinical coding</strong> on synthetic data: turns a patient episode into a grounded, auditable coding proposal — principal + additional diagnoses with condition-onset flags, procedures, and a predicted AR-DRG, each tied to an evidence span and a coding-standard rule. Screens out negated/historical/family findings, enforces validity edits, never emits an unvalidated code, and ships an eval harness. Bundles a stdlib-only engine + a fictional code set/standards/index + 6 example episodes with gold codings. <a href="claude/skills/clin-coder/">See example →</a> · <a href="claude/skills/clin-coder/GUIDE.md">Usage guide →</a></td>
-</tr>
-<tr>
-<td nowrap><a href="claude/agents/clin-coder-concept-extractor.md">clin‑coder‑concept‑extractor</a><br><sub>Claude</sub></td>
-<td>Agent</td>
-<td>Read-only extractor of codeable clinical concepts with evidence spans <strong>and clinical context</strong> (negation, temporality, certainty, family history) from a single document. Runs one-per-document in parallel; pairs with the <code>clin-coder</code> skill.</td>
-</tr>
-<tr>
-<td nowrap><a href="claude/agents/clin-coder-verifier.md">clin‑coder‑verifier</a><br><sub>Claude</sub></td>
-<td>Agent</td>
-<td>Read-only auditor of a proposed coding: runs the engine's validity edits + grounding checks and flags anything unvalidated, ungrounded, or rule-violating. Cannot modify the proposal. Pairs with the <code>clin-coder</code> skill.</td>
-</tr>
-<tr>
-<td nowrap><a href="claude/agents/clin-coder-cdi.md">clin‑coder‑cdi</a><br><sub>Claude</sub></td>
-<td>Agent</td>
-<td>Read-only drafter of a non-leading Clinical Documentation Improvement (CDI) query when an episode's documentation is too thin or ambiguous to code confidently. Never codes. Pairs with the <code>clin-coder</code> skill.</td>
+<td>Generates editable, dark-theme Azure architecture diagrams as <code>.excalidraw</code> files — official Azure icons as nodes, resource-group containers, and auto-routed connectors. Describe the architecture in one line; bundles a pure-Python generator + 647 official Azure icons. <a href="claude/skills/azure-diagram/">Example →</a></td>
 </tr>
 </table>
 
