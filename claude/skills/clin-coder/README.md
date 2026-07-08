@@ -57,6 +57,11 @@ flowchart TD
 - **Evaluation harness** — score a proposal against gold, or run a batch scoreboard
   (precision/recall/F1, principal-dx accuracy, DRG match, hallucination rate, groundedness, withholding).
 
+## Usage guide
+
+**[GUIDE.md](GUIDE.md)** — worked examples of the skill and all three agents, with real inputs and
+expected outputs (coding an episode, concept extraction, verification, CDI queries, and the eval harness).
+
 ## Try it
 
 In Claude Code with this skill installed:

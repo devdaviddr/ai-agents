@@ -79,7 +79,7 @@ claude        # or: opencode
 <tr>
 <td nowrap><a href="claude/skills/clin-coder/">clin‑coder</a><br><sub>Claude</sub></td>
 <td>Skill</td>
-<td>Agentic <strong>clinical coding</strong> on synthetic data: turns a patient episode into a grounded, auditable coding proposal — principal + additional diagnoses with condition-onset flags, procedures, and a predicted AR-DRG, each tied to an evidence span and a coding-standard rule. Screens out negated/historical/family findings, enforces validity edits, never emits an unvalidated code, and ships an eval harness. Bundles a stdlib-only engine + a fictional code set/standards/index + 6 example episodes with gold codings. <a href="claude/skills/clin-coder/">See example →</a></td>
+<td>Agentic <strong>clinical coding</strong> on synthetic data: turns a patient episode into a grounded, auditable coding proposal — principal + additional diagnoses with condition-onset flags, procedures, and a predicted AR-DRG, each tied to an evidence span and a coding-standard rule. Screens out negated/historical/family findings, enforces validity edits, never emits an unvalidated code, and ships an eval harness. Bundles a stdlib-only engine + a fictional code set/standards/index + 6 example episodes with gold codings. <a href="claude/skills/clin-coder/">See example →</a> · <a href="claude/skills/clin-coder/GUIDE.md">Usage guide →</a></td>
 </tr>
 <tr>
 <td nowrap><a href="claude/agents/clin-coder-concept-extractor.md">clin‑coder‑concept‑extractor</a><br><sub>Claude</sub></td>
